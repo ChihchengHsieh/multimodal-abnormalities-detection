@@ -1,6 +1,17 @@
 import pandas as pd
 import numpy as np
 import torch
+import torch.utils.data as data
+import utils.transforms as T
+
+from sklearn.preprocessing import LabelEncoder
+from PIL import Image
+
+# import torchvision.transforms as torch_transform
+
+import pandas as pd
+import numpy as np
+import torch
 import torch.nn as nn
 import torch.utils.data as data
 import torchvision.transforms as transforms
@@ -8,78 +19,113 @@ from sklearn.preprocessing import LabelEncoder
 from PIL import Image
 from torch.autograd import Variable
 
-class REFLACXWithClinicalDataset(data.Dataset):
-    
-    def __init__(self,
-                 image_size=224,
-                 clinical_cols=['age', 'gender', 'temperature', 'heartrate', 'resprate',
-                                'o2sat', 'sbp', 'dbp', 'pain', 'acuity'],
-                 clinical_numerical_cols=[
-                     'age', 'temperature', 'heartrate', 'resprate', 'o2sat', 'sbp', 'dbp', 'pain', 'acuity'],
-                 clinical_categorical_cols=['gender'],
-                 #      labels_cols=[
-                 # 'Airway wall thickening', 'Atelectasis', 'Consolidation',
-                 # 'Enlarged cardiac silhouette', 'Fibrosis',
-                 # 'Groundglass opacity', 'Pneumothorax', 'Pulmonary edema',
-                 # 'Quality issue', 'Support devices', 'Wide mediastinum',
-                 # 'Abnormal mediastinal contour', 'Acute fracture', 'Enlarged hilum',
-                 # 'Hiatal hernia', 'High lung volume / emphysema',
-                 # 'Interstitial lung disease', 'Lung nodule or mass',
-                 # 'Pleural abnormality'
-                 #          ],
+class REFLACXWithClinicalAndBoundingBoxDataset(data.Dataset):
+    def __init__(
+        self,
+        XAMI_MIMIC_PATH,
+        split_str = None,
+        transforms=None,
+        image_size=224,
+        clinical_numerical_cols=[
+            "age",
+            "temperature",
+            "heartrate",
+            "resprate",
+            "o2sat",
+            "sbp",
+            "dbp",
+            "pain",
+            "acuity",
+        ],
+        clinical_categorical_cols=["gender"],
+        labels_cols=[
+            "Enlarged cardiac silhouette",
+            "Atelectasis",
+            "Pleural abnormality",
+            "Consolidation",
+            "Pulmonary edema",
+            #  'Groundglass opacity', # 6th disease.
+        ],
+        all_disease_cols=[
+            "Airway wall thickening",
+            "Atelectasis",
+            "Consolidation",
+            "Enlarged cardiac silhouette",
+            "Fibrosis",
+            "Groundglass opacity",
+            "Pneumothorax",
+            "Pulmonary edema",
+            "Wide mediastinum",
+            "Abnormal mediastinal contour",
+            "Acute fracture",
+            "Enlarged hilum",
+            "Hiatal hernia",
+            "High lung volume / emphysema",
+            "Interstitial lung disease",
+            "Lung nodule or mass",
+            "Pleural abnormality",
+        ],
+        repetitive_label_map={
+            "Airway wall thickening": ["Airway wall thickening"],
+            "Atelectasis": ["Atelectasis"],
+            "Consolidation": ["Consolidation"],
+            "Enlarged cardiac silhouette": ["Enlarged cardiac silhouette"],
+            "Fibrosis": ["Fibrosis"],
+            "Groundglass opacity": ["Groundglass opacity"],
+            "Pneumothorax": ["Pneumothorax"],
+            "Pulmonary edema": ["Pulmonary edema"],
+            "Quality issue": ["Quality issue"],
+            "Support devices": ["Support devices"],
+            "Wide mediastinum": ["Wide mediastinum"],
+            "Abnormal mediastinal contour": ["Abnormal mediastinal contour"],
+            "Acute fracture": ["Acute fracture"],
+            "Enlarged hilum": ["Enlarged hilum"],
+            "Hiatal hernia": ["Hiatal hernia"],
+            "High lung volume / emphysema": [
+                "High lung volume / emphysema",
+                "Emphysema",
+            ],
+            "Interstitial lung disease": ["Interstitial lung disease"],
+            "Lung nodule or mass": ["Lung nodule or mass", "Mass", "Nodule"],
+            "Pleural abnormality": [
+                "Pleural abnormality",
+                "Pleural thickening",
+                "Pleural effusion",
+            ],
+        },
+        box_fix_cols=["xmin", "ymin", "xmax", "ymax", "certainty"],
+        box_coord_cols = ["xmin", "ymin", "xmax", "ymax"],
+        path_cols = ['image_path', 'anomaly_location_ellipses_path'],
+    ):
 
-                 labels_cols=[
-                    #  "Support devices",
-                     "Enlarged cardiac silhouette",
-                     "Atelectasis",
-                     "Pleural abnormality",
-                     "Consolidation",
-                     "Pulmonary edema",
-                    #  'Groundglass opacity',
-                 ],
-                 all_disease_cols=[
-            'Airway wall thickening', 'Atelectasis', 'Consolidation',
-            'Enlarged cardiac silhouette', 'Fibrosis',
-            'Groundglass opacity', 'Pneumothorax', 'Pulmonary edema', 'Wide mediastinum',
-            'Abnormal mediastinal contour', 'Acute fracture', 'Enlarged hilum',
-            'Hiatal hernia', 'High lung volume / emphysema',
-            'Interstitial lung disease', 'Lung nodule or mass',
-            'Pleural abnormality'
-                 ],
-                 horizontal_flip=True,
-                 ):
-
-        super(REFLACXWithClinicalDataset, self).__init__()
-
+        ## assign data
+        self.split_str = split_str
         self.image_size = image_size
-        self.df = pd.read_csv('reflacx_with_clinical.csv', index_col=0)
-        self.clinical_cols = clinical_cols
         self.clinical_numerical_cols = clinical_numerical_cols
         self.clinical_categorical_cols = clinical_categorical_cols
+        self.clinical_cols = clinical_numerical_cols + clinical_categorical_cols 
         self.labels_cols = labels_cols
         self.all_disease_cols = all_disease_cols
-        self.encoders_map = {}
+        self.repetitive_label_map  = repetitive_label_map
+        self.box_fix_cols = box_fix_cols
+        self.box_coord_cols = box_coord_cols
+        self.transforms = transforms
 
-        normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                         std=[0.229, 0.224, 0.225])
-        train_transforms_lst = [
-            transforms.Resize((self.image_size, self.image_size)),
-            transforms.RandomHorizontalFlip() if horizontal_flip else None,
-            transforms.ToTensor(),
-            normalize,
-        ]
-        self.train_transform = transforms.Compose(
-            [t for t in train_transforms_lst if t])
+        # load dataframe.
+        self.df = pd.read_csv("reflacx_with_clinical.csv", index_col=0)
 
-        self.test_transform = transforms.Compose([
-            transforms.Resize((self.image_size, self.image_size)),
-            transforms.ToTensor(),
-            normalize,
-        ])
+        if not self.split_str is None:
+            self.df  = self.df[self.df['split'] == self.split_str]
+        
+        ## repalce the correct path for mimic folder.
+        for p_col in path_cols:
+            self.df[p_col] = self.df[p_col].apply(lambda x: x.replace("{XAMI_MIMIC_PATH}", XAMI_MIMIC_PATH))
 
+        ## preprocessing data.
         self.preprocess_clinical_df()
         self.preprocess_label()
-        self.get_weights()
+
+        super(REFLACXWithClinicalAndBoundingBoxDataset, self).__init__()
 
     def preprocess_clinical_df(self,):
         self.encoders_map = {}
@@ -100,81 +146,74 @@ class REFLACXWithClinicalDataset(data.Dataset):
         im = Image.fromarray(image_array)
         im.show()
 
-    def __getitem__(self, index):
-        # find the df
-        return self.df.iloc[index]
+    def disease_to_idx(self, disease):
+        if not disease in self.labels_cols:
+            raise Exception("This disease is not the label.") 
 
-    def train_collate_fn(self, x):
-        return self.collate_fn(x, mode='train')
-
-    def test_collate_fn(self, x):
-        return self.collate_fn(x, mode='test')
-
-    def collate_fn(self, data, mode="train"):
-
-        data = pd.DataFrame(data)
-
-        images = [Image.open(path).convert("RGB")
-                  for path in data['image_path']]
-
-        label_long_tensor = torch.tensor(
-            np.array(data[self.labels_cols])).long()
-
-        clinical_numerical_input = torch.tensor(
-            np.array(data[self.clinical_numerical_cols])).float()
-
-        clinical_categorical_input = {}
-
-        for col in self.clinical_categorical_cols:
-            clinical_categorical_input[col] = torch.tensor(
-                np.array(data[col]))
-
-        images = torch.stack([self.train_transform(
-            img) if mode == "train" else self.test_transform(img) for img in images])
-
-        # we will feed the categorical column to the model, so we keep it in dataframe form.
-        return images, (clinical_numerical_input, clinical_categorical_input), label_long_tensor
+        return self.labels_cols.index(disease) + 1
 
     def __len__(self):
         return len(self.df)
 
-    # def get_weights(self):
-    #     p_count = (self.df[self.labels_cols] == 1).sum(axis=0)
-    #     self.p_count = p_count
-    #     n_count = (self.df[self.labels_cols] == 0).sum(axis=0)
-    #     total = p_count + n_count
+    def generate_boxes_df(
+        self, 
+        ellipse_df,
+    ):
+        boxes_df = ellipse_df[self.box_fix_cols]
 
-    #     # invert *opposite* weights to obtain weighted loss
-    #     # (positives weighted higher, all weights same across batches, and p_weight + n_weight == 1)
-    #     p_weight = n_count / total
-    #     n_weight = p_count / total
+        ## relabel repetitive columns.
+        for k in self.repetitive_label_map.keys():
+            boxes_df[k] = ellipse_df[
+                [l for l in self.repetitive_label_map[k] if l in ellipse_df.columns]
+            ].any(axis=1)
 
-    #     self.p_weight_loss = Variable(
-    #         torch.FloatTensor(p_weight), requires_grad=False)
-    #     self.n_weight_loss = Variable(
-    #         torch.FloatTensor(n_weight), requires_grad=False)
+        ## filtering out the diseases not in the label_cols
+        boxes_df = boxes_df[boxes_df[self.labels_cols].any(axis=1)]
 
-    #     print("Positive Loss weight:")
-    #     print(self.p_weight_loss.data.numpy())
-    #     print("Negative Loss weight:")
-    #     print(self.n_weight_loss.data.numpy())
+        ## get labels
+        boxes_df['label'] = boxes_df[self.labels_cols].idxmax(axis= 1)
+        boxes_df = boxes_df[self.box_fix_cols + ['label']]
 
-    #     n_classes = len(self.labels_cols)
+        return boxes_df
 
-    #     random_loss = sum((p_weight[i] * p_count[i] + n_weight[i] * n_count[i]) *
-    #                       -np.log(0.5) / total[i] for i in range(n_classes)) / n_classes
-    #     print("Random Loss:")
-    #     print(random_loss)
+    def collate_fn(batch):
+        return tuple(zip(*batch))
 
-    # def weighted_loss(self, preds, target, device):
+    def __getitem__(self, idx):
+        # find the df
+        data = self.df.iloc[idx]
 
-    #     weights = (target.type(torch.FloatTensor) * (self.p_weight_loss.expand_as(target)) +
-    #                (target == 0).type(torch.FloatTensor) * (self.n_weight_loss.expand_as(target))).to(device)
+        img = Image.open(data["image_path"]).convert("RGB") 
 
-    #     loss = 0.0
-    #     n_classes = len(self.labels_cols)
+        ## Prepare clinical data.
+        clinical_numerical_input = torch.tensor(
+            np.array(data[self.clinical_numerical_cols], dtype=float)
+        ).float()
+        clinical_categorical_input =  torch.tensor(np.array(data[self.clinical_categorical_cols], dtype=int))
 
-    #     for i in range(n_classes):
-    #         loss += nn.functional.binary_cross_entropy_with_logits(
-    #             preds[:, i], target[:, i].float(), weight=weights[:, i])
-    #     return loss / n_classes
+        ## Get bounding boxes.
+        boxes_df = self.generate_boxes_df(pd.read_csv(data['anomaly_location_ellipses_path']))
+        boxes = torch.tensor(np.array(boxes_df[self.box_coord_cols], dtype=float))
+
+        ## Calculate area of boxes.
+        area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
+
+        labels = torch.tensor(np.array(boxes_df['label'].apply(lambda l: self.disease_to_idx(l))), dtype=torch.int64)
+        image_id = torch.tensor([idx])
+        num_objs = boxes.shape[0]
+
+        ## suppose all instances are not crowd
+        iscrowd = torch.zeros((num_objs,), dtype=torch.int64)
+
+        # prepare all targets
+        target = {}
+        target["boxes"] = boxes
+        target["labels"] = labels
+        target["image_id"] = image_id
+        target["area"] = area
+        target["iscrowd"] = iscrowd
+
+        if self.transforms is not None:
+            img, target = self.transforms(img, target)
+
+        return img, clinical_numerical_input, clinical_categorical_input, target

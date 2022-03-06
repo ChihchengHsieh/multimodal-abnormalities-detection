@@ -9,7 +9,7 @@ import torchvision
 from pycocotools import mask as coco_mask
 from pycocotools.coco import COCO
 
-import transforms as T
+import utils.transforms as T
 
 
 class FilterAndRemapCocoCategories(object):
@@ -152,7 +152,7 @@ def convert_to_coco_api(ds):
     for img_idx in range(len(ds)):
         # find better way to get target
         # targets = ds.get_annotations(img_idx)
-        img, targets = ds[img_idx]
+        img, clinical_num, clinical_cat, targets = ds[img_idx]
         image_id = targets["image_id"].item()
         img_dict = {}
         img_dict['id'] = image_id
