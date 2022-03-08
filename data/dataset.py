@@ -152,6 +152,15 @@ class REFLACXWithClinicalAndBoundingBoxDataset(data.Dataset):
 
         return self.labels_cols.index(disease) + 1
 
+    def label_index_to_disease(self, idx):
+        if idx ==  0:
+            return "background"
+
+        if idx >= len(self.labels_cols):
+            return "exceed label range"
+        
+        return self.labels_cols[idx -1]
+
     def __len__(self):
         return len(self.df)
 
@@ -212,6 +221,8 @@ class REFLACXWithClinicalAndBoundingBoxDataset(data.Dataset):
         target["image_id"] = image_id
         target["area"] = area
         target["iscrowd"] = iscrowd
+        target['dicom_id'] = data['dicom_id']
+        target['image_path'] = data['image_path']
 
         if self.transforms is not None:
             img, target = self.transforms(img, target)

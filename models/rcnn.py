@@ -62,7 +62,11 @@ class MultimodalGeneralizedRCNN(nn.Module):
             self.transform([torch.ones(3, 2048, 2048)])[0].tensors
         )
 
-        self.feature_keys = example_img_features.keys()
+        # if isinstance(example_img_features, OrderedDict):
+        self.example_img_features =example_img_features
+
+        if isinstance(example_img_features, OrderedDict) :
+            self.feature_keys = example_img_features.keys()
 
         if isinstance(example_img_features, torch.Tensor):
             example_img_features = OrderedDict([("0", example_img_features)])
@@ -233,8 +237,6 @@ class MultimodalGeneralizedRCNN(nn.Module):
         else:
             features = img_features
 
-        self.features = features
-
         proposals, proposal_losses = self.rpn(images, features, targets)
         detections, detector_losses = self.roi_heads(
             features, proposals, images.image_sizes, targets
@@ -242,9 +244,6 @@ class MultimodalGeneralizedRCNN(nn.Module):
         detections = self.transform.postprocess(
             detections, images.image_sizes, original_image_sizes
         )
-
-        self.detections = detections
-        self.clinical = clinical
 
         losses = {}
         losses.update(detector_losses)
