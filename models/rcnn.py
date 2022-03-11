@@ -6,6 +6,9 @@ from collections import OrderedDict
 from torch import nn, Tensor
 from typing import Tuple, List, Dict, Union
 
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
+from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
+
 from torchvision.models.detection.faster_rcnn import (
     MultiScaleRoIAlign,
     RPNHead,
@@ -941,4 +944,89 @@ def multimodal_maskrcnn_resnet50_fpn(
         )
         model.load_state_dict(state_dict, strict=False)
         torchvision.models.detection._utils.overwrite_eps(model, 0.0)
+    return model
+
+
+
+
+
+def get_model_instance_segmentation(
+    num_classes,
+    rpn_nms_thresh=0.3,
+    box_detections_per_img=6,
+    box_nms_thresh=0.2,
+    rpn_score_thresh=0.0,
+    box_score_thresh=0.05,
+):
+    # load an instance segmentation model pre-trained on COCO
+    model = torchvision.models.detection.maskrcnn_resnet50_fpn(
+        pretrained=True,
+        rpn_nms_thresh=rpn_nms_thresh,
+        box_detections_per_img=box_detections_per_img,
+        box_nms_thresh=box_nms_thresh,
+        rpn_score_thresh=rpn_score_thresh,
+        box_score_thresh=box_score_thresh,
+    )
+
+    # get number of input features for the classifier
+    in_features = model.roi_heads.box_predictor.cls_score.in_features
+    # replace the pre-trained head with a new one
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+
+    # now get the number of input features for the mask classifier
+    in_features_mask = model.roi_heads.mask_predictor.conv5_mask.in_channels
+    hidden_layer = 256
+    # and replace the mask predictor with a new one
+    model.roi_heads.mask_predictor = MaskRCNNPredictor(
+        in_features_mask, hidden_layer, num_classes
+    )
+
+    return model
+
+
+def get_multimodal_model_instance_segmentation(
+    num_classes,
+    rpn_nms_thresh=0.3,
+    box_detections_per_img=6,
+    box_nms_thresh=0.2,
+    rpn_score_thresh=0.0,
+    box_score_thresh=0.05,
+    pretrained_backbone=True,
+    trainable_backbone_layers=None,
+    clinical_input_channels=32,
+    clinical_num_len=9,
+    clinical_conv_channels=64,
+    fuse_conv_channels=64,
+    use_clinical=False,
+):
+
+    model = multimodal_maskrcnn_resnet50_fpn(
+        pretrained=True,
+        rpn_nms_thresh=rpn_nms_thresh,
+        box_detections_per_img=box_detections_per_img,
+        box_nms_thresh=box_nms_thresh,
+        pretrained_backbone=pretrained_backbone,
+        trainable_backbone_layers=trainable_backbone_layers,
+        clinical_input_channels=clinical_input_channels,
+        clinical_num_len=clinical_num_len,
+        clinical_conv_channels=clinical_conv_channels,
+        fuse_conv_channels=fuse_conv_channels,
+        use_clinical=use_clinical,
+        rpn_score_thresh=rpn_score_thresh,
+        box_score_thresh=box_score_thresh,
+    )
+
+    # get number of input features for the classifier
+    in_features = model.roi_heads.box_predictor.cls_score.in_features
+    # replace the pre-trained head with a new one
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+
+    # now get the number of input features for the mask classifier
+    in_features_mask = model.roi_heads.mask_predictor.conv5_mask.in_channels
+    hidden_layer = 256
+    # and replace the mask predictor with a new one
+    model.roi_heads.mask_predictor = MaskRCNNPredictor(
+        in_features_mask, hidden_layer, num_classes
+    )
+
     return model

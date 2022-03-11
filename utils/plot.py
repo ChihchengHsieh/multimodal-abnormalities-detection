@@ -11,6 +11,8 @@ from utils.save import get_train_data
 from utils.map import map_target_to_device
 from data.dataset import collate_fn
 
+from utils.detect_utils import MetricLogger
+
 
 def transparent_cmap(cmap, N=255):
     "Copy colormap and set alpha values"
@@ -20,6 +22,24 @@ def transparent_cmap(cmap, N=255):
     t_cmap._lut[:, -1] = np.linspace(0, 0.8, N + 4)
 
     return t_cmap
+
+
+disease_cmap = {
+    "transparent": {
+        "Enlarged cardiac silhouette": transparent_cmap(plt.cm.autumn),
+        "Atelectasis": transparent_cmap(plt.cm.Reds),
+        "Pleural abnormality": transparent_cmap(plt.cm.Oranges),
+        "Consolidation": transparent_cmap(plt.cm.Greens),
+        "Pulmonary edema": transparent_cmap(plt.cm.Blues),
+    },
+    "solid": {
+        "Enlarged cardiac silhouette": "yellow",
+        "Atelectasis": "red",
+        "Pleural abnormality": "orange",
+        "Consolidation": "lightgreen",
+        "Pulmonary edema": "dodgerblue",
+    },
+}
 
 
 def get_legend_elements(disease_cmap_solid):
@@ -34,7 +54,10 @@ def plot_loss(train_logers):
 
     clear_output()
 
-    train_data = [get_train_data(loger) for loger in train_logers]
+    if ( isinstance( train_logers[0], MetricLogger)):
+        train_data = [get_train_data(loger) for loger in train_logers]
+    else:
+        train_data  = train_logers
 
     train_data_keys = train_data[0].keys()
 

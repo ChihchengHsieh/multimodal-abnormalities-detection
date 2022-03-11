@@ -24,7 +24,7 @@ from utils.map import map_target_to_device
 
 
 def collate_fn(batch):
-        return tuple(zip(*batch))
+    return tuple(zip(*batch))
 
 
 class ReflacxDataset(data.Dataset):
@@ -214,7 +214,6 @@ class ReflacxDataset(data.Dataset):
 
         return boxes_df
 
-
     def __getitem__(self, idx):
         # find the df
         data = self.df.iloc[idx]
@@ -227,7 +226,6 @@ class ReflacxDataset(data.Dataset):
         )
         bboxes = torch.tensor(np.array(bboxes_df[self.box_coord_cols], dtype=float))
 
-  
         ## Calculate area of boxes.
         area = (bboxes[:, 3] - bboxes[:, 1]) * (bboxes[:, 2] - bboxes[:, 0])
 
@@ -251,7 +249,6 @@ class ReflacxDataset(data.Dataset):
         target["iscrowd"] = iscrowd
         target["dicom_id"] = data["dicom_id"]
         target["image_path"] = data["image_path"]
-
 
         if self.bbox_to_mask:
             # generate masks from bboxes
@@ -297,6 +294,12 @@ class ReflacxDataset(data.Dataset):
             targets = [map_target_to_device(t, device) for t in targets]
 
             return (imgs, targets)
+
+    def get_idxs_from_dicom_id(self, dicom_id):
+        return [
+            self.df.index.get_loc(i)
+            for i in self.df.index[self.df["dicom_id"].eq(dicom_id)]
+        ]
 
 
 class REFLACXWithClinicalAndBoundingBoxDataset(data.Dataset):
