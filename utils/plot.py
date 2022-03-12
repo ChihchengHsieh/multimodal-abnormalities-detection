@@ -12,6 +12,7 @@ from utils.map import map_target_to_device
 from data.dataset import collate_fn
 
 from utils.detect_utils import MetricLogger
+from utils.coco_eval import external_summarize
 
 
 def transparent_cmap(cmap, N=255):
@@ -54,10 +55,10 @@ def plot_loss(train_logers):
 
     clear_output()
 
-    if ( isinstance( train_logers[0], MetricLogger)):
+    if isinstance(train_logers[0], MetricLogger):
         train_data = [get_train_data(loger) for loger in train_logers]
     else:
-        train_data  = train_logers
+        train_data = train_logers
 
     train_data_keys = train_data[0].keys()
 
@@ -80,6 +81,66 @@ def plot_loss(train_logers):
     subplots[-1].set_xlabel("Epoch")
     plt.plot()
     plt.pause(0.01)
+
+
+def plot_evaluator(
+    evaluators, iouThr=0.5, areaRng="all", maxDets=10,
+):
+
+    clear_output()
+
+    all_precisions = []
+    all_recalls = []
+
+    for i in range(len(evaluators)):
+
+        all_precisions.append(
+            external_summarize(
+                evaluators[i].coco_eval["bbox"],
+                ap=1,
+                iouThr=iouThr,
+                areaRng=areaRng,
+                maxDets=maxDets,
+                print_result=False,
+            )
+        )
+
+        all_recalls.append(
+            external_summarize(
+                evaluators[i].coco_eval["bbox"],
+                ap=0,
+                iouThr=iouThr,
+                areaRng=areaRng,
+                maxDets=maxDets,
+                print_result=False,
+            )
+        )
+
+    fig, (precision_ax, recall_ax) = plt.subplots(
+        2, figsize=(10, 10), dpi=80, sharex=True,
+    )
+
+    precision_ax.set_title("Precision")
+    precision_ax.plot(
+        all_precisions,
+        marker="o",
+        label="Precision",
+        color="darkorange",
+    )
+    precision_ax.legend(loc="upper left")
+    recall_ax.set_title("Recall")
+    recall_ax.plot(
+        all_recalls, marker="o", label="Recall", color="darkorange",
+    )
+
+    recall_ax.legend(loc="upper left")
+
+    recall_ax.set_xlabel("Epoch")
+
+    plt.plot()
+    plt.pause(0.01)
+
+    return fig
 
 
 def plot_seg(
@@ -155,7 +216,7 @@ def plot_bbox(
     for label, bbox, score in zip(
         pred[0]["labels"].detach().cpu().numpy(),
         pred[0]["boxes"].detach().cpu().numpy(),
-        pred[0]['scores'].detach().cpu().numpy(),
+        pred[0]["scores"].detach().cpu().numpy(),
     ):
         disease = label_idx_to_disease(label)
         c = disease_color_code_map[disease]
@@ -169,7 +230,13 @@ def plot_bbox(
                 linewidth=2,
             )
         )
-        pred_ax.text(bbox[0], bbox[1], f"{disease} ({score:.2f})", color="black", backgroundcolor=c)
+        pred_ax.text(
+            bbox[0],
+            bbox[1],
+            f"{disease} ({score:.2f})",
+            color="black",
+            backgroundcolor=c,
+        )
 
     for rec in pred_recs:
         pred_ax.add_patch(rec)
@@ -208,7 +275,7 @@ def plot_result(
     seg=False,
     seg_thres=0.5,
 ):
-
+    model.eval()
     data = collate_fn([dataset[idx]])
     data = dataset.prepare_input_from_data(data, device)
     target = data[-1]
@@ -231,3 +298,4 @@ def plot_result(
             disease_cmap["transparent"],
             seg_thres=seg_thres,
         )
+

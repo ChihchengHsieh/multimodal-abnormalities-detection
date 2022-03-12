@@ -13,10 +13,21 @@ from utils.map import map_target_to_device
 
 from models.rcnn import MultimodalMaskRCNN
 
-def xami_train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, scaler=None):
+
+def xami_train_one_epoch(
+    model,
+    optimizer,
+    data_loader,
+    device,
+    epoch,
+    print_freq,
+    scaler=None,
+):
     model.train()
     metric_logger = detect_utils.MetricLogger(delimiter="  ")
-    metric_logger.add_meter("lr", detect_utils.SmoothedValue(window_size=1, fmt="{value:.6f}"))
+    metric_logger.add_meter(
+        "lr", detect_utils.SmoothedValue(window_size=1, fmt="{value:.6f}")
+    )
     header = f"Epoch: [{epoch}]"
 
     lr_scheduler = None
@@ -29,9 +40,9 @@ def xami_train_one_epoch(model, optimizer, data_loader, device, epoch, print_fre
         )
 
     for data in metric_logger.log_every(data_loader, print_freq, header):
-        data  =data_loader.dataset.prepare_input_from_data(data, device)
+        data = data_loader.dataset.prepare_input_from_data(data, device)
         with torch.cuda.amp.autocast(enabled=scaler is not None):
-            loss_dict = model(*data[:-1] ,targets= data[-1])
+            loss_dict = model(*data[:-1], targets=data[-1])
             losses = sum(loss for loss in loss_dict.values())
 
         # reduce losses over all GPUs for logging purposes
@@ -64,7 +75,7 @@ def xami_train_one_epoch(model, optimizer, data_loader, device, epoch, print_fre
 
 
 @torch.inference_mode()
-def xami_evaluate(model, data_loader, device):
+def xami_evaluate(model, data_loader, device, params_dict=None):
     n_threads = torch.get_num_threads()
     # FIXME remove this and make paste_masks_in_image run on the GPU
     torch.set_num_threads(1)
@@ -75,7 +86,7 @@ def xami_evaluate(model, data_loader, device):
 
     coco = get_coco_api_from_dataset(data_loader.dataset)
     iou_types = _get_iou_types(model)
-    coco_evaluator = CocoEvaluator(coco, iou_types)
+    coco_evaluator = CocoEvaluator(coco, iou_types, params_dict)
 
     for data in metric_logger.log_every(data_loader, 100, header):
         data = data_loader.dataset.prepare_input_from_data(data, device)
@@ -88,7 +99,10 @@ def xami_evaluate(model, data_loader, device):
         outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
         model_time = time.time() - model_time
 
-        res = {target["image_id"].item(): output for target, output in zip(data[-1], outputs)}
+        res = {
+            target["image_id"].item(): output
+            for target, output in zip(data[-1], outputs)
+        }
         evaluator_time = time.time()
         coco_evaluator.update(res)
         evaluator_time = time.time() - evaluator_time
@@ -106,11 +120,14 @@ def xami_evaluate(model, data_loader, device):
     return coco_evaluator
 
 
-
-def official_train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, scaler=None):
+def official_train_one_epoch(
+    model, optimizer, data_loader, device, epoch, print_freq, scaler=None
+):
     model.train()
     metric_logger = detect_utils.MetricLogger(delimiter="  ")
-    metric_logger.add_meter("lr", detect_utils.SmoothedValue(window_size=1, fmt="{value:.6f}"))
+    metric_logger.add_meter(
+        "lr", detect_utils.SmoothedValue(window_size=1, fmt="{value:.6f}")
+    )
     header = f"Epoch: [{epoch}]"
 
     lr_scheduler = None
@@ -158,7 +175,6 @@ def official_train_one_epoch(model, optimizer, data_loader, device, epoch, print
     return metric_logger
 
 
-
 @torch.inference_mode()
 def official_evaluate(model, data_loader, device):
     n_threads = torch.get_num_threads()
@@ -184,7 +200,10 @@ def official_evaluate(model, data_loader, device):
         outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
         model_time = time.time() - model_time
 
-        res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
+        res = {
+            target["image_id"].item(): output
+            for target, output in zip(targets, outputs)
+        }
         evaluator_time = time.time()
         coco_evaluator.update(res)
         evaluator_time = time.time() - evaluator_time
@@ -200,7 +219,6 @@ def official_evaluate(model, data_loader, device):
     coco_evaluator.summarize()
     torch.set_num_threads(n_threads)
     return coco_evaluator
-
 
 
 def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq):
@@ -229,9 +247,7 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq):
         clinical_num = [t.to(device) for t in clinical_num]
         clinical_cat = [t.to(device) for t in clinical_cat]
 
-        loss_dict = model(
-            images, (clinical_num, clinical_cat), targets
-        )
+        loss_dict = model(images, (clinical_num, clinical_cat), targets)
 
         losses = sum(loss for loss in loss_dict.values())
 
@@ -258,12 +274,15 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq):
 
     return metric_logger
 
+
 def _get_iou_types(model):
     model_without_ddp = model
     if isinstance(model, torch.nn.parallel.DistributedDataParallel):
         model_without_ddp = model.module
     iou_types = ["bbox"]
-    if isinstance(model_without_ddp, torchvision.models.detection.MaskRCNN) or isinstance(model_without_ddp, MultimodalMaskRCNN):
+    if isinstance(
+        model_without_ddp, torchvision.models.detection.MaskRCNN
+    ) or isinstance(model_without_ddp, MultimodalMaskRCNN):
         iou_types.append("segm")
     if isinstance(model_without_ddp, torchvision.models.detection.KeypointRCNN):
         iou_types.append("keypoints")
@@ -284,7 +303,9 @@ def evaluate(model, data_loader, device):
     iou_types = _get_iou_types(model)
     coco_evaluator = CocoEvaluator(coco, iou_types)
 
-    for images, clinical_num, clinical_cat, targets in metric_logger.log_every(data_loader, 100, header):
+    for images, clinical_num, clinical_cat, targets in metric_logger.log_every(
+        data_loader, 100, header
+    ):
         images = list(img.to(device) for img in images)
         clinical_num = [t.to(device) for t in clinical_num]
         clinical_cat = [t.to(device) for t in clinical_cat]

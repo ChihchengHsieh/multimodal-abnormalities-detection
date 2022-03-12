@@ -14,10 +14,41 @@ import pycocotools.mask as mask_util
 from collections import defaultdict
 
 from utils import detect_utils
+from utils.coco_utils import get_coco_api_from_dataset
+from pycocotools.cocoeval import Params
+
+def get_eval_params_dict(dataset,
+    iou_thrs = None,
+    max_dets = None, 
+):
+
+    iou_thrs = iou_thrs if not iou_thrs is None else np.linspace(
+        0.1, 0.95, int(np.round((0.95 - 0.1) / 0.05)) + 1, endpoint=True
+    )
+    
+    max_dets = max_dets if not max_dets is None else [1, 8, 10, 100]
+
+    eval_params_dict = {iou_type: Params(iouType=iou_type) for iou_type in ["bbox", "segm"]}
+
+    eval_params_dict["bbox"].iouThrs = iou_thrs
+    eval_params_dict["segm"].iouThrs = iou_thrs
+    
+    eval_params_dict["bbox"].maxDets = [1, 8, 10, 100]
+    eval_params_dict["bbox"].maxDets = [1, 8, 10, 100]
+
+
+    coco_gt = get_coco_api_from_dataset(dataset)
+
+    if not coco_gt is None:
+        for k in eval_params_dict.keys():
+            eval_params_dict[k].imgIds = sorted(coco_gt.getImgIds())
+            eval_params_dict[k].catIds = sorted(coco_gt.getCatIds())
+
+    return 
 
 
 class CocoEvaluator(object):
-    def __init__(self, coco_gt, iou_types):
+    def __init__(self, coco_gt, iou_types, params_dict=None):
         assert isinstance(iou_types, (list, tuple))
         coco_gt = copy.deepcopy(coco_gt)
         self.coco_gt = coco_gt
@@ -26,6 +57,9 @@ class CocoEvaluator(object):
         self.coco_eval = {}
         for iou_type in iou_types:
             self.coco_eval[iou_type] = COCOeval(coco_gt, iouType=iou_type)
+
+            if not (params_dict is None) and iou_type in params_dict.keys():
+                self.coco_eval[iou_type].params = params_dict[iou_type]
 
         self.img_ids = []
         self.eval_imgs = {k: [] for k in iou_types}
@@ -233,6 +267,40 @@ def createIndex(self):
 
 
 maskUtils = mask_util
+
+def external_summarize(evaluator, ap=1, iouThr=None, areaRng='all', maxDets=100, print_result=False):
+    p = evaluator.params
+    iStr = ' {:<18} {} @[ IoU={:<9} | area={:>6s} | maxDets={:>3d} ] = {:0.3f}'
+    titleStr = 'Average Precision' if ap == 1 else 'Average Recall'
+    typeStr = '(AP)' if ap==1 else '(AR)'
+    iouStr = '{:0.2f}:{:0.2f}'.format(p.iouThrs[0], p.iouThrs[-1]) \
+        if iouThr is None else '{:0.2f}'.format(iouThr)
+
+    aind = [i for i, aRng in enumerate(p.areaRngLbl) if aRng == areaRng]
+    mind = [i for i, mDet in enumerate(p.maxDets) if mDet == maxDets]
+    if ap == 1:
+        # dimension of precision: [TxRxKxAxM]
+        s = evaluator.eval['precision']
+        # IoU
+        if iouThr is not None:
+            t = np.where(iouThr == p.iouThrs)[0]
+            s = s[t]
+        s = s[:,:,:,aind,mind]
+    else:
+        # dimension of recall: [TxKxAxM]
+        s = evaluator.eval['recall']
+        if iouThr is not None:
+            t = np.where(iouThr == p.iouThrs)[0]
+            s = s[t]
+        s = s[:,:,aind,mind]
+    if len(s[s>-1])==0:
+        mean_s = -1
+    else:
+        mean_s = np.mean(s[s>-1])
+
+    if print_result:
+        print(iStr.format(titleStr, typeStr, iouStr, areaRng, maxDets, mean_s))
+    return mean_s
 
 
 def loadRes(self, resFile):

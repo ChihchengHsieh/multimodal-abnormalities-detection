@@ -245,6 +245,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
         detections, detector_losses = self.roi_heads(
             features, proposals, images.image_sizes, targets
         )
+
         detections = self.transform.postprocess(
             detections, images.image_sizes, original_image_sizes
         )
