@@ -12,6 +12,7 @@ from utils import detect_utils
 from utils.map import map_target_to_device
 
 from models.rcnn import MultimodalMaskRCNN
+from utils.pred import pred_thrs_check
 
 
 def xami_train_one_epoch(
@@ -75,7 +76,7 @@ def xami_train_one_epoch(
 
 
 @torch.inference_mode()
-def xami_evaluate(model, data_loader, device, params_dict=None):
+def xami_evaluate(model, data_loader, device, params_dict=None, score_thres=None):
     n_threads = torch.get_num_threads()
     # FIXME remove this and make paste_masks_in_image run on the GPU
     torch.set_num_threads(1)
@@ -95,6 +96,9 @@ def xami_evaluate(model, data_loader, device, params_dict=None):
             torch.cuda.synchronize()
         model_time = time.time()
         outputs = model(*data[:-1])
+
+        if not score_thres is None:
+            outputs = [pred_thrs_check(pred, data_loader.dataset, score_thres, device) for pred in outputs]
 
         outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
         model_time = time.time() - model_time

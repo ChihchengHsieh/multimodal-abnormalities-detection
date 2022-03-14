@@ -23,7 +23,7 @@ def get_eval_params_dict(dataset,
 ):
 
     iou_thrs = iou_thrs if not iou_thrs is None else np.linspace(
-        0.1, 0.95, int(np.round((0.95 - 0.1) / 0.05)) + 1, endpoint=True
+        0.5, 0.95, int(np.round((0.95 - 0.5) / 0.05)) + 1, endpoint=True
     )
     
     max_dets = max_dets if not max_dets is None else [1, 8, 10, 100]
@@ -33,9 +33,8 @@ def get_eval_params_dict(dataset,
     eval_params_dict["bbox"].iouThrs = iou_thrs
     eval_params_dict["segm"].iouThrs = iou_thrs
     
-    eval_params_dict["bbox"].maxDets = [1, 8, 10, 100]
-    eval_params_dict["bbox"].maxDets = [1, 8, 10, 100]
-
+    eval_params_dict["bbox"].maxDets = [1, 6, 10, 100]
+    eval_params_dict["bbox"].maxDets = [1, 6, 10, 100]
 
     coco_gt = get_coco_api_from_dataset(dataset)
 
@@ -46,6 +45,30 @@ def get_eval_params_dict(dataset,
 
     return 
 
+
+
+def get_ar_ap(
+    evaluator, areaRng="all", iouThr=0.5, maxDets=10,
+):
+    ar = external_summarize(
+        evaluator.coco_eval["bbox"],
+        ap=0,
+        areaRng=areaRng,
+        iouThr=iouThr,
+        maxDets=maxDets,
+        print_result=False,
+    )
+
+    ap = external_summarize(
+        evaluator.coco_eval["bbox"],
+        ap=1,
+        areaRng=areaRng,
+        iouThr=iouThr,
+        maxDets=maxDets,
+        print_result=False,
+    )
+
+    return ar, ap
 
 class CocoEvaluator(object):
     def __init__(self, coco_gt, iou_types, params_dict=None):

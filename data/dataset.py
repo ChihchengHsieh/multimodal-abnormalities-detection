@@ -180,6 +180,9 @@ class ReflacxDataset(data.Dataset):
         if not disease in self.labels_cols:
             raise Exception("This disease is not the label.")
 
+        if disease == "background":
+            return 0
+
         return self.labels_cols.index(disease) + 1
 
     def label_idx_to_disease(self, idx):
@@ -300,6 +303,9 @@ class ReflacxDataset(data.Dataset):
             self.df.index.get_loc(i)
             for i in self.df.index[self.df["dicom_id"].eq(dicom_id)]
         ]
+
+    def get_image_path_from_dicom_id(self, dicom_id):
+        return self.df[self.df['dicom_id']==dicom_id].iloc[0]['image_path']
 
 
 class REFLACXWithClinicalAndBoundingBoxDataset(data.Dataset):

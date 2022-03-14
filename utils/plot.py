@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
+from utils.pred import pred_thrs_check
 
-from IPython.display import clear_output
 from utils.save import get_train_data
 from utils.map import map_target_to_device
 from data.dataset import collate_fn
@@ -53,8 +53,6 @@ def get_legend_elements(disease_cmap_solid):
 
 def plot_loss(train_logers):
 
-    clear_output()
-
     if isinstance(train_logers[0], MetricLogger):
         train_data = [get_train_data(loger) for loger in train_logers]
     else:
@@ -86,8 +84,6 @@ def plot_loss(train_logers):
 def plot_evaluator(
     evaluators, iouThr=0.5, areaRng="all", maxDets=10,
 ):
-
-    clear_output()
 
     all_precisions = []
     all_recalls = []
@@ -207,16 +203,16 @@ def plot_bbox(
     gt_ax.imshow(img)
     gt_ax.set_title(f"Ground Truth ({len(target['boxes'].detach().cpu().numpy())})")
     pred_ax.imshow(img)
-    pred_ax.set_title(f"Predictions ({len(pred[0]['boxes'].detach().cpu().numpy())})")
+    pred_ax.set_title(f"Predictions ({len(pred['boxes'].detach().cpu().numpy())})")
 
     # load image
     gt_recs = []
     pred_recs = []
 
     for label, bbox, score in zip(
-        pred[0]["labels"].detach().cpu().numpy(),
-        pred[0]["boxes"].detach().cpu().numpy(),
-        pred[0]["scores"].detach().cpu().numpy(),
+        pred["labels"].detach().cpu().numpy(),
+        pred["boxes"].detach().cpu().numpy(),
+        pred["scores"].detach().cpu().numpy(),
     ):
         disease = label_idx_to_disease(label)
         c = disease_color_code_map[disease]
@@ -265,6 +261,7 @@ def plot_bbox(
     plt.pause(0.01)
 
 
+
 def plot_result(
     model,
     dataset,
@@ -274,12 +271,17 @@ def plot_result(
     disease_cmap,
     seg=False,
     seg_thres=0.5,
+    score_thres=None,
 ):
     model.eval()
     data = collate_fn([dataset[idx]])
     data = dataset.prepare_input_from_data(data, device)
     target = data[-1]
     pred = model(*data[:-1])
+    pred = pred[0]
+
+    if not score_thres is None:
+        pred = pred_thrs_check(pred, dataset, score_thres, device)
 
     plot_bbox(
         target[0],

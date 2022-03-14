@@ -1,4 +1,6 @@
 /PennFudanPed
 /training_records
 /trained_models
+/radiologists_annotated
+/radiologist_ann_results
 *.zip
