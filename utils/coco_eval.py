@@ -43,7 +43,7 @@ def get_eval_params_dict(dataset,
             eval_params_dict[k].imgIds = sorted(coco_gt.getImgIds())
             eval_params_dict[k].catIds = sorted(coco_gt.getCatIds())
 
-    return 
+    return eval_params_dict
 
 
 

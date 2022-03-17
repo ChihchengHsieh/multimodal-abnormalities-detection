@@ -1,25 +1,23 @@
-import enum
 import pandas as pd
 import numpy as np
 import torch
 import torch.utils.data as data
 import utils.transforms as T
 import os
+import PIL
 
+
+from pathlib import Path
 from sklearn.preprocessing import LabelEncoder
 from PIL import Image
-import PIL
 
 # import torchvision.transforms as torch_transform
 
 import pandas as pd
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.utils.data as data
-import torchvision.transforms as transforms
 from sklearn.preprocessing import LabelEncoder
-from torch.autograd import Variable
 from utils.map import map_target_to_device
 
 
@@ -116,6 +114,7 @@ class ReflacxDataset(data.Dataset):
         # Image related
         self.image_size = image_size
         self.transforms = transforms
+        self.path_cols = path_cols
 
         # Labels
         self.labels_cols = labels_cols
@@ -147,9 +146,9 @@ class ReflacxDataset(data.Dataset):
             self.df = self.df[self.df["split"] == self.split_str]
 
         ## repalce the correct path for mimic folder.
-        for p_col in path_cols:
+        for p_col in self.path_cols:
             self.df[p_col] = self.df[p_col].apply(
-                lambda x: x.replace("{XAMI_MIMIC_PATH}", XAMI_MIMIC_PATH)
+                lambda x: str(Path(x.replace("{XAMI_MIMIC_PATH}", XAMI_MIMIC_PATH)))
             )
 
         ## preprocessing data.
@@ -305,7 +304,7 @@ class ReflacxDataset(data.Dataset):
         ]
 
     def get_image_path_from_dicom_id(self, dicom_id):
-        return self.df[self.df['dicom_id']==dicom_id].iloc[0]['image_path']
+        return self.df[self.df["dicom_id"] == dicom_id].iloc[0]["image_path"]
 
 
 class REFLACXWithClinicalAndBoundingBoxDataset(data.Dataset):

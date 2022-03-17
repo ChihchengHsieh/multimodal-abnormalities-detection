@@ -3,4 +3,5 @@
 /trained_models
 /radiologists_annotated
 /radiologist_ann_results
+/radiologist_ann_results_separate
 *.zip
