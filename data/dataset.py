@@ -17,12 +17,72 @@ import pandas as pd
 import numpy as np
 import torch
 import torch.utils.data as data
+from copy import deepcopy
 from sklearn.preprocessing import LabelEncoder
 from utils.map import map_target_to_device
 
-
 def collate_fn(batch):
     return tuple(zip(*batch))
+
+class OurRadiologsitsDataset(data.Dataset):
+    def __init__(self, original_dataset, radiologists_anns):
+
+        self.original_dataset = original_dataset
+        self.radiologists_anns = radiologists_anns
+        self.with_clinical = self.original_dataset.with_clinical
+
+        super(OurRadiologsitsDataset, self).__init__()
+
+    def __len__(self):
+        return len(self.radiologists_anns)
+
+    def __getitem__(self, idx):
+        ann = deepcopy(self.radiologists_anns[idx])
+
+        idx= self.original_dataset.get_idxs_from_dicom_id(ann['dicom_id'])[0]
+
+        data = deepcopy(self.original_dataset[idx])
+        # target = data[-1]
+
+        bboxes = ann['boxes']
+        area = (bboxes[:, 3] - bboxes[:, 1]) * (bboxes[:, 2] - bboxes[:, 0])
+
+        num_objs = bboxes.shape[0]
+
+        ann["image_id"] = torch.tensor([idx])
+        ann['area'] = area
+        ann['iscrowd']=  torch.zeros((num_objs,), dtype=torch.int64)
+
+        img = PIL.Image.open(ann["image_path"]).convert("RGB")
+        masks = torch.zeros((num_objs, img.height, img.width), dtype=torch.uint8)
+        for i, b in enumerate(bboxes):
+            b = b.int()
+            masks[i, b[1] : b[3], b[0] : b[2]] = 1
+            ann["masks"] = masks
+
+        data = [*data[:-1], ann]
+
+        return data
+
+    def prepare_input_from_data(self, data, device):
+
+        if self.with_clinical:
+            imgs, clinical_num, clinical_cat, targets = data
+
+            imgs = list(img.to(device) for img in imgs)
+            clinical_num = [t.to(device) for t in clinical_num]
+            clinical_cat = [t.to(device) for t in clinical_cat]
+            targets = [map_target_to_device(t, device) for t in targets]
+
+            return (imgs, clinical_num, clinical_cat, targets)
+
+        else:
+            imgs, targets = data
+
+            imgs = list(img.to(device) for img in imgs)
+            targets = [map_target_to_device(t, device) for t in targets]
+
+            return (imgs, targets)
 
 
 class ReflacxDataset(data.Dataset):

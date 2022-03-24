@@ -4,6 +4,7 @@ import time
 import torch
 
 import torchvision.models.detection.mask_rcnn
+from copy import deepcopy
 
 from utils.coco_utils import get_coco_api_from_dataset
 from utils.coco_eval import CocoEvaluator
@@ -76,7 +77,7 @@ def xami_train_one_epoch(
 
 
 @torch.inference_mode()
-def xami_evaluate(model, data_loader, device, params_dict=None, score_thres=None):
+def xami_evaluate(model, data_loader, device, params_dict=None, score_thres=None,):
     n_threads = torch.get_num_threads()
     # FIXME remove this and make paste_masks_in_image run on the GPU
     torch.set_num_threads(1)
