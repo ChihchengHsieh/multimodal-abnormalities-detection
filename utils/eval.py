@@ -18,17 +18,20 @@ def save_iou_results(evaluator, suffix, model_path):
             'ap': test_ap,
         })
 
-        print(f"IoU [{thrs:.4f}] | AR [{test_ar:.4f}] | AP [{test_ap:.4f}]")
+        print(f"IoBB [{thrs:.4f}] | AR [{test_ar:.4f}] | AP [{test_ap:.4f}]")
 
-    ## iouThr=0.3
-    # 0.5699603174603174 0.23895678925202643 (custom, with clinical)
-    # 0.5992460317460317 0.2928311315704941 (custom, without clinical)
-    # 0.5244047619047619 0.22751787710826604 (original, without clinical)
+
 
     with open(
         os.path.join("eval_results", f"{model_path}_{suffix}.pkl"), "wb",
     ) as training_record_f:
         pickle.dump(ap_ar_dict, training_record_f)
+
+
+## iouThr=0.3
+# 0.5699603174603174 0.23895678925202643 (custom, with clinical)
+# 0.5992460317460317 0.2928311315704941 (custom, without clinical)
+# 0.5244047619047619 0.22751787710826604 (original, without clinical)
 
 ### iouThr=0.3, With score thrs.
 # 0.45178571428571423 0.20556006215252126 (custom, with clinical)

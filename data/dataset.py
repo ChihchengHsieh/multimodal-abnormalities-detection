@@ -1,3 +1,4 @@
+from operator import index
 import pandas as pd
 import numpy as np
 import torch
@@ -5,6 +6,7 @@ import torch.utils.data as data
 import utils.transforms as T
 import os
 import PIL
+import json
 
 
 from pathlib import Path
@@ -21,8 +23,10 @@ from copy import deepcopy
 from sklearn.preprocessing import LabelEncoder
 from utils.map import map_target_to_device
 
+
 def collate_fn(batch):
     return tuple(zip(*batch))
+
 
 class OurRadiologsitsDataset(data.Dataset):
     def __init__(self, original_dataset, radiologists_anns):
@@ -39,19 +43,19 @@ class OurRadiologsitsDataset(data.Dataset):
     def __getitem__(self, idx):
         ann = deepcopy(self.radiologists_anns[idx])
 
-        idx= self.original_dataset.get_idxs_from_dicom_id(ann['dicom_id'])[0]
+        idx = self.original_dataset.get_idxs_from_dicom_id(ann["dicom_id"])[0]
 
         data = deepcopy(self.original_dataset[idx])
         # target = data[-1]
 
-        bboxes = ann['boxes']
+        bboxes = ann["boxes"]
         area = (bboxes[:, 3] - bboxes[:, 1]) * (bboxes[:, 2] - bboxes[:, 0])
 
         num_objs = bboxes.shape[0]
 
         ann["image_id"] = torch.tensor([idx])
-        ann['area'] = area
-        ann['iscrowd']=  torch.zeros((num_objs,), dtype=torch.int64)
+        ann["area"] = area
+        ann["iscrowd"] = torch.zeros((num_objs,), dtype=torch.int64)
 
         img = PIL.Image.open(ann["image_path"]).convert("RGB")
         masks = torch.zeros((num_objs, img.height, img.width), dtype=torch.uint8)
@@ -89,7 +93,6 @@ class ReflacxDataset(data.Dataset):
     def __init__(
         self,
         XAMI_MIMIC_PATH,
-        using_full_reflacx=True,
         with_clinical=False,
         bbox_to_mask=False,
         split_str=None,
@@ -164,11 +167,11 @@ class ReflacxDataset(data.Dataset):
         },
         box_fix_cols=["xmin", "ymin", "xmax", "ymax", "certainty"],
         box_coord_cols=["xmin", "ymin", "xmax", "ymax"],
-        path_cols=["image_path", "anomaly_location_ellipses_path"],
+        path_cols=["image_path", "anomaly_location_ellipses_path", "bbox_paths"],
+        dataset_mode="normal",
     ):
         # Data loading selections
         self.with_clinical = with_clinical
-        self.using_full_reflacx = using_full_reflacx
         self.split_str = split_str
 
         # Image related
@@ -183,15 +186,18 @@ class ReflacxDataset(data.Dataset):
         self.box_fix_cols = box_fix_cols
         self.box_coord_cols = box_coord_cols
         self.bbox_to_mask = bbox_to_mask
+        self.dataset_mode = dataset_mode
 
-        if self.using_full_reflacx:
+        if self.dataset_mode == "full":
             assert (
                 self.with_clinical == False
             ), "The full REFLACX dataset doesn't come with identified stayId; hence, it can't be used with clincal data."
             self.df = pd.read_csv("reflacx_cxr.csv", index_col=0)
 
-        else:
+        elif self.dataset_mode == "normal":
             self.df = pd.read_csv("reflacx_with_clinical.csv", index_col=0)
+        elif self.dataset_mode == "unified":
+            self.df = pd.read_csv("reflacx_u_df.csv", index_col=0)
 
         # determine if using clinical data.
         if self.with_clinical:
@@ -206,10 +212,21 @@ class ReflacxDataset(data.Dataset):
             self.df = self.df[self.df["split"] == self.split_str]
 
         ## repalce the correct path for mimic folder.
-        for p_col in self.path_cols:
-            self.df[p_col] = self.df[p_col].apply(
-                lambda x: str(Path(x.replace("{XAMI_MIMIC_PATH}", XAMI_MIMIC_PATH)))
-            )
+
+        for p_col in path_cols:
+            if p_col in self.df.columns:
+                if p_col == 'bbox_paths':
+                    def apply_bbox_paths_transform(input_paths_str):
+                        input_paths_list = json.loads(input_paths_str)
+                        replaced_path_list = [ p.replace("{XAMI_MIMIC_PATH}", XAMI_MIMIC_PATH)  for p in input_paths_list]
+                        return replaced_path_list
+                    apply_fn = lambda x: apply_bbox_paths_transform(x)
+
+                else:
+                    apply_fn = lambda x: str(Path(x.replace("{XAMI_MIMIC_PATH}", XAMI_MIMIC_PATH)))
+                self.df[p_col] = self.df[p_col].apply(
+                    apply_fn        
+                )
 
         ## preprocessing data.
         self.preprocess_label()
@@ -283,10 +300,18 @@ class ReflacxDataset(data.Dataset):
         img = PIL.Image.open(data["image_path"]).convert("RGB")
 
         ## Get bounding boxes.
-        bboxes_df = self.generate_bboxes_df(
-            pd.read_csv(data["anomaly_location_ellipses_path"])
-        )
-        bboxes = torch.tensor(np.array(bboxes_df[self.box_coord_cols], dtype=float))
+        if self.dataset_mode == "unified":
+            bboxes_df = pd.concat(
+                [self.generate_bboxes_df(pd.read_csv(p)) for p in data["bbox_paths"]],
+                axis=0,
+            )
+        else:
+            bboxes_df = self.generate_bboxes_df(
+                pd.read_csv(data["anomaly_location_ellipses_path"])
+            )
+        bboxes = torch.tensor(
+            np.array(bboxes_df[self.box_coord_cols], dtype=float)
+        )  # x1, y1, x2, y2
 
         ## Calculate area of boxes.
         area = (bboxes[:, 3] - bboxes[:, 1]) * (bboxes[:, 2] - bboxes[:, 0])

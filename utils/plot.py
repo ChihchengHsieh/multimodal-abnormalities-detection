@@ -50,7 +50,6 @@ def get_legend_elements(disease_cmap_solid):
 
     return legend_elements
 
-
 def plot_loss(train_logers):
 
     if isinstance(train_logers[0], MetricLogger):

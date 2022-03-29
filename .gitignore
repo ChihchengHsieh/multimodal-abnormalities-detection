@@ -5,3 +5,5 @@
 /radiologist_ann_results
 /radiologist_ann_results_separate
 *.zip
+/backup
+/eval_results

@@ -20,7 +20,6 @@ from torchvision.models.detection.faster_rcnn import (
     GeneralizedRCNNTransform,
 )
 
-
 class MultimodalGeneralizedRCNN(nn.Module):
     """
     Main class for Generalized R-CNN.
@@ -45,6 +44,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
         clinical_conv_channels,
         fuse_conv_channels,
         use_clinical,
+        dropout_rate=0.0,
     ):
         super(MultimodalGeneralizedRCNN, self).__init__()
         self.transform = transform
@@ -53,6 +53,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
         self.roi_heads = roi_heads
         # used only on torchscript mode
         self._has_warned = False
+        self.dropout_rate =dropout_rate
 
         self.clinical_input_channels = clinical_input_channels
         self.clinical_num_len = clinical_num_len
@@ -74,7 +75,6 @@ class MultimodalGeneralizedRCNN(nn.Module):
             example_img_features = OrderedDict([("0", example_img_features)])
 
         if self.use_clinical:
-
             self.gender_emb_layer = nn.Embedding(
                 2, self.clinical_input_channels - self.clinical_num_len
             )
@@ -89,6 +89,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
                             self.clinical_conv_channels,
                             kernel_size=[8, 8],
                         ),
+                        nn.Dropout2d(p=self.dropout_rate, inplace=True,),
                         nn.Conv2d(
                             self.clinical_conv_channels,
                             self.clinical_conv_channels,
@@ -105,6 +106,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
                             kernel_size=2,
                             stride=2,
                         ),
+                        nn.Dropout2d(p=self.dropout_rate, inplace=True,),
                         nn.Conv2d(
                             self.clinical_conv_channels,
                             self.clinical_conv_channels,
@@ -125,6 +127,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
                         stride=1,
                         padding=1,
                     ),
+                    nn.Dropout2d(p=self.dropout_rate, inplace=True,),
                     nn.Conv2d(
                         self.fuse_conv_channels,
                         backbone.out_channels,
@@ -740,7 +743,7 @@ class MultimodalMaskRCNN(MultimodalFasterRCNN):
             mask_predictor = MaskRCNNPredictor(
                 mask_predictor_in_channels, mask_dim_reduced, num_classes
             )
-        
+
         print("c1")
         print(box_predictor)
 
@@ -843,9 +846,9 @@ class MaskRCNNPredictor(nn.Sequential):
 
 
 model_urls = {
-    'maskrcnn_resnet50_fpn_coco':
-        'https://download.pytorch.org/models/maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth',
+    "maskrcnn_resnet50_fpn_coco": "https://download.pytorch.org/models/maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth",
 }
+
 
 def multimodal_maskrcnn_resnet50_fpn(
     pretrained=False,
@@ -946,9 +949,6 @@ def multimodal_maskrcnn_resnet50_fpn(
         model.load_state_dict(state_dict, strict=False)
         torchvision.models.detection._utils.overwrite_eps(model, 0.0)
     return model
-
-
-
 
 
 def get_model_instance_segmentation(
