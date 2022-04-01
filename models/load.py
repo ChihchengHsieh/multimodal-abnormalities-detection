@@ -24,6 +24,7 @@ class TrainingInfo:
     def __init__(self, model_setup: ModelSetup):
         self.train_data = []
         self.val_evaluators = []
+        self.train_evaluators = []
         self.test_evaluator = None
         self.best_val_ar = -1
         self.best_val_ap = -1
@@ -40,6 +41,7 @@ class TrainingInfo:
         super(TrainingInfo).__init__()
 
 class TrainedModels(Enum):
+
     original = "val_ar_0_5230_ap_0_2576_test_ar_0_5678_ap_0_2546_epoch28_WithoutClincal_03-28-2022 06-56-13_original"
 
     custom_without_clinical = "val_ar_0_4575_ap_0_2689_test_ar_0_4953_ap_0_2561_epoch40_WithoutClincal_03-28-2022 09-15-40_custom_without_clinical"
@@ -51,6 +53,8 @@ class TrainedModels(Enum):
     custom_with_clinical_drop3 = "val_ar_0_3993_ap_0_2326_test_ar_0_4957_ap_0_2390_epoch50_WithClincal_03-28-2022 16-06-00_custom_with_clinical"
 
     custom_with_clinical_drop5 = "val_ar_0_4955_ap_0_2942_test_ar_0_5449_ap_0_2566_epoch28_WithClincal_03-28-2022 17-25-34_custom_with_clinical"
+
+    overfitting = "val_ar_0_2113_ap_0_1818_test_ar_0_2767_ap_0_1532_epoch250_WithClincal_03-31-2022 23-09-38_custom_with_clinical"
 
 
 def create_model_from_setup(

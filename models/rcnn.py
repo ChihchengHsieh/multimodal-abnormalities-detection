@@ -44,7 +44,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
         clinical_conv_channels,
         fuse_conv_channels,
         use_clinical,
-        dropout_rate=0.0,
+        dropout_rate=0.2,
     ):
         super(MultimodalGeneralizedRCNN, self).__init__()
         self.transform = transform
@@ -444,7 +444,6 @@ class MultimodalFasterRCNN(MultimodalGeneralizedRCNN):
 
         if num_classes is not None:
             if box_predictor is not None:
-                print(box_predictor)
                 raise ValueError(
                     "num_classes should be None when box_predictor is specified"
                 )
@@ -744,9 +743,6 @@ class MultimodalMaskRCNN(MultimodalFasterRCNN):
                 mask_predictor_in_channels, mask_dim_reduced, num_classes
             )
 
-        print("c1")
-        print(box_predictor)
-
         super(MultimodalMaskRCNN, self).__init__(
             backbone,
             num_classes,
@@ -928,8 +924,6 @@ def multimodal_maskrcnn_resnet50_fpn(
     backbone = torchvision.models.detection.backbone_utils.resnet_fpn_backbone(
         "resnet50", pretrained_backbone, trainable_layers=trainable_backbone_layers
     )
-
-    print(kwargs)
 
     model = MultimodalMaskRCNN(
         backbone,

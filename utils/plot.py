@@ -127,7 +127,6 @@ def plot_evaluator(
     recall_ax.plot(
         all_recalls, marker="o", label="Recall", color="darkorange",
     )
-
     recall_ax.legend(loc="upper left")
 
     recall_ax.set_xlabel("Epoch")
@@ -136,6 +135,98 @@ def plot_evaluator(
     plt.pause(0.01)
 
     return fig
+
+def plot_train_val_evaluators(
+    train_evaluators, val_evaluators,iouThr=0.5, areaRng="all", maxDets=10,
+):
+
+    train_precisions = []
+    train_recalls = []
+
+    val_precisions = []
+    val_recalls = []
+
+    for i in range(len(train_evaluators)):
+        train_precisions.append(
+            external_summarize(
+                train_evaluators[i].coco_eval["bbox"],
+                ap=1,
+                iouThr=iouThr,
+                areaRng=areaRng,
+                maxDets=maxDets,
+                print_result=False,
+            )
+        )
+
+        val_precisions.append(
+            external_summarize(
+                val_evaluators[i].coco_eval["bbox"],
+                ap=1,
+                iouThr=iouThr,
+                areaRng=areaRng,
+                maxDets=maxDets,
+                print_result=False,
+            )
+        )
+
+        train_recalls.append(
+            external_summarize(
+                train_evaluators[i].coco_eval["bbox"],
+                ap=0,
+                iouThr=iouThr,
+                areaRng=areaRng,
+                maxDets=maxDets,
+                print_result=False,
+            )
+        )
+
+        val_recalls.append(
+            external_summarize(
+                val_evaluators[i].coco_eval["bbox"],
+                ap=0,
+                iouThr=iouThr,
+                areaRng=areaRng,
+                maxDets=maxDets,
+                print_result=False,
+            )
+        )
+
+    fig, (precision_ax, recall_ax) = plt.subplots(
+        2, figsize=(10, 10), dpi=80, sharex=True,
+    )
+
+    precision_ax.set_title("Precision")
+    precision_ax.plot(
+        train_precisions,
+        marker="o",
+        label="train",
+        color="royalblue",
+    )
+    precision_ax.plot(
+        val_precisions,
+        marker="o",
+        label="validation",
+        color="darkorange",
+    )
+    precision_ax.legend(loc="upper left")
+
+    recall_ax.set_title("Recall")
+    recall_ax.plot(
+        train_recalls, marker="o", label="train", color="royalblue",
+    )
+
+    recall_ax.plot(
+        val_recalls, marker="o", label="validation", color="darkorange",
+    )
+    recall_ax.legend(loc="upper left")
+
+    recall_ax.set_xlabel("Epoch")
+
+    plt.plot()
+    plt.pause(0.01)
+
+    return fig
+
 
 
 def plot_seg(
