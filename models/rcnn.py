@@ -20,6 +20,7 @@ from torchvision.models.detection.faster_rcnn import (
     GeneralizedRCNNTransform,
 )
 
+
 class MultimodalGeneralizedRCNN(nn.Module):
     """
     Main class for Generalized R-CNN.
@@ -45,15 +46,19 @@ class MultimodalGeneralizedRCNN(nn.Module):
         fuse_conv_channels,
         use_clinical,
         dropout_rate=0.2,
+        image_size=256,
     ):
+
         super(MultimodalGeneralizedRCNN, self).__init__()
+
         self.transform = transform
         self.backbone = backbone
         self.rpn = rpn
         self.roi_heads = roi_heads
         # used only on torchscript mode
         self._has_warned = False
-        self.dropout_rate =dropout_rate
+        self.dropout_rate = dropout_rate
+        self.image_size = image_size
 
         self.clinical_input_channels = clinical_input_channels
         self.clinical_num_len = clinical_num_len
@@ -83,11 +88,16 @@ class MultimodalGeneralizedRCNN(nn.Module):
 
             for i, k in enumerate(reversed(self.feature_keys)):
                 if i == 0:
+
+                    k_size = self.image_size / 64
+
+                    assert(k_size.is_integer(), f"The kernel size should be interger but found {k_size}")
+
                     self.clinical_convs[k] = nn.Sequential(
                         nn.ConvTranspose2d(
                             self.clinical_input_channels,
                             self.clinical_conv_channels,
-                            kernel_size=[8, 8],
+                            kernel_size=int(k_size),
                         ),
                         nn.Dropout2d(p=self.dropout_rate, inplace=True,),
                         nn.Conv2d(
@@ -429,7 +439,7 @@ class MultimodalFasterRCNN(MultimodalGeneralizedRCNN):
         clinical_conv_channels=256,
         fuse_conv_channels=256,
         use_clinical=True,
-        fixsize=[512, 512],
+        image_size=256,
     ):
 
         if not hasattr(backbone, "out_channels"):
@@ -519,7 +529,11 @@ class MultimodalFasterRCNN(MultimodalGeneralizedRCNN):
         if image_std is None:
             image_std = [0.229, 0.224, 0.225]
         transform = GeneralizedRCNNTransform(
-            min_size, max_size, image_mean, image_std, fixed_size=fixsize
+            min_size,
+            max_size,
+            image_mean,
+            image_std,
+            fixed_size=[image_size, image_size],
         )
 
         super(MultimodalFasterRCNN, self).__init__(
@@ -532,6 +546,7 @@ class MultimodalFasterRCNN(MultimodalGeneralizedRCNN):
             clinical_conv_channels=clinical_conv_channels,
             fuse_conv_channels=fuse_conv_channels,
             use_clinical=use_clinical,
+            image_size=image_size,
         )
 
 
@@ -714,6 +729,7 @@ class MultimodalMaskRCNN(MultimodalFasterRCNN):
         clinical_conv_channels=256,
         fuse_conv_channels=256,
         use_clinical=True,
+        image_size=256,
     ):
 
         assert isinstance(mask_roi_pool, (MultiScaleRoIAlign, type(None)))
@@ -782,6 +798,7 @@ class MultimodalMaskRCNN(MultimodalFasterRCNN):
             clinical_conv_channels=clinical_conv_channels,
             fuse_conv_channels=fuse_conv_channels,
             use_clinical=use_clinical,
+            image_size=image_size,
         )
 
         self.roi_heads.mask_roi_pool = mask_roi_pool
@@ -937,30 +954,35 @@ def multimodal_maskrcnn_resnet50_fpn(
     )
 
     if pretrained:
+        print("Using pretrained model")
         state_dict = torch.hub.load_state_dict_from_url(
             model_urls["maskrcnn_resnet50_fpn_coco"], progress=progress
         )
         model.load_state_dict(state_dict, strict=False)
         torchvision.models.detection._utils.overwrite_eps(model, 0.0)
+    else:
+        print("Not using pretrained model.")
     return model
 
 
 def get_model_instance_segmentation(
     num_classes,
     rpn_nms_thresh=0.3,
-    box_detections_per_img=6,
+    box_detections_per_img=10,
     box_nms_thresh=0.2,
     rpn_score_thresh=0.0,
     box_score_thresh=0.05,
-):
+    **kwargs,
+    ):
     # load an instance segmentation model pre-trained on COCO
     model = torchvision.models.detection.maskrcnn_resnet50_fpn(
-        pretrained=True,
+        pretrained=False,
         rpn_nms_thresh=rpn_nms_thresh,
         box_detections_per_img=box_detections_per_img,
         box_nms_thresh=box_nms_thresh,
         rpn_score_thresh=rpn_score_thresh,
         box_score_thresh=box_score_thresh,
+        **kwargs,
     )
 
     # get number of input features for the classifier
@@ -979,49 +1001,49 @@ def get_model_instance_segmentation(
     return model
 
 
-def get_multimodal_model_instance_segmentation(
-    num_classes,
-    rpn_nms_thresh=0.3,
-    box_detections_per_img=6,
-    box_nms_thresh=0.2,
-    rpn_score_thresh=0.0,
-    box_score_thresh=0.05,
-    pretrained_backbone=True,
-    trainable_backbone_layers=None,
-    clinical_input_channels=32,
-    clinical_num_len=9,
-    clinical_conv_channels=64,
-    fuse_conv_channels=64,
-    use_clinical=False,
-):
+# def get_multimodal_model_instance_segmentation(
+#     num_classes,
+#     rpn_nms_thresh=0.3,
+#     box_detections_per_img=6,
+#     box_nms_thresh=0.2,
+#     rpn_score_thresh=0.0,
+#     box_score_thresh=0.05,
+#     pretrained_backbone=True,
+#     trainable_backbone_layers=None,
+#     clinical_input_channels=32,
+#     clinical_num_len=9,
+#     clinical_conv_channels=64,
+#     fuse_conv_channels=64,
+#     use_clinical=False,
+# ):
 
-    model = multimodal_maskrcnn_resnet50_fpn(
-        pretrained=True,
-        rpn_nms_thresh=rpn_nms_thresh,
-        box_detections_per_img=box_detections_per_img,
-        box_nms_thresh=box_nms_thresh,
-        pretrained_backbone=pretrained_backbone,
-        trainable_backbone_layers=trainable_backbone_layers,
-        clinical_input_channels=clinical_input_channels,
-        clinical_num_len=clinical_num_len,
-        clinical_conv_channels=clinical_conv_channels,
-        fuse_conv_channels=fuse_conv_channels,
-        use_clinical=use_clinical,
-        rpn_score_thresh=rpn_score_thresh,
-        box_score_thresh=box_score_thresh,
-    )
+#     model = multimodal_maskrcnn_resnet50_fpn(
+#         pretrained=True,
+#         rpn_nms_thresh=rpn_nms_thresh,
+#         box_detections_per_img=box_detections_per_img,
+#         box_nms_thresh=box_nms_thresh,
+#         pretrained_backbone=pretrained_backbone,
+#         trainable_backbone_layers=trainable_backbone_layers,
+#         clinical_input_channels=clinical_input_channels,
+#         clinical_num_len=clinical_num_len,
+#         clinical_conv_channels=clinical_conv_channels,
+#         fuse_conv_channels=fuse_conv_channels,
+#         use_clinical=use_clinical,
+#         rpn_score_thresh=rpn_score_thresh,
+#         box_score_thresh=box_score_thresh,
+#     )
 
-    # get number of input features for the classifier
-    in_features = model.roi_heads.box_predictor.cls_score.in_features
-    # replace the pre-trained head with a new one
-    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+#     # get number of input features for the classifier
+#     in_features = model.roi_heads.box_predictor.cls_score.in_features
+#     # replace the pre-trained head with a new one
+#     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
 
-    # now get the number of input features for the mask classifier
-    in_features_mask = model.roi_heads.mask_predictor.conv5_mask.in_channels
-    hidden_layer = 256
-    # and replace the mask predictor with a new one
-    model.roi_heads.mask_predictor = MaskRCNNPredictor(
-        in_features_mask, hidden_layer, num_classes
-    )
+#     # now get the number of input features for the mask classifier
+#     in_features_mask = model.roi_heads.mask_predictor.conv5_mask.in_channels
+#     hidden_layer = 256
+#     # and replace the mask predictor with a new one
+#     model.roi_heads.mask_predictor = MaskRCNNPredictor(
+#         in_features_mask, hidden_layer, num_classes
+#     )
 
-    return model
+#     return model

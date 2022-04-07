@@ -3,9 +3,9 @@ from datetime import datetime
 from enum import Enum
 from dataclasses import dataclass
 from typing import Any, Optional, Tuple
+from .build import get_multimodal_model
 
-from models.rcnn import (
-    get_multimodal_model_instance_segmentation,
+from .rcnn import (
     get_model_instance_segmentation,
 )
 
@@ -19,6 +19,8 @@ class ModelSetup:
     best_ar_val_model_path: str = None
     best_ap_val_model_path: str = None
     final_model_path: str = None
+    backbone: str = "resnet50"
+
 
 class TrainingInfo:
     def __init__(self, model_setup: ModelSetup):
@@ -40,8 +42,8 @@ class TrainingInfo:
         self.epoch = 0
         super(TrainingInfo).__init__()
 
-class TrainedModels(Enum):
 
+class TrainedModels(Enum):
     original = "val_ar_0_5230_ap_0_2576_test_ar_0_5678_ap_0_2546_epoch28_WithoutClincal_03-28-2022 06-56-13_original"
 
     custom_without_clinical = "val_ar_0_4575_ap_0_2689_test_ar_0_4953_ap_0_2561_epoch40_WithoutClincal_03-28-2022 09-15-40_custom_without_clinical"
@@ -57,17 +59,35 @@ class TrainedModels(Enum):
     overfitting = "val_ar_0_2113_ap_0_1818_test_ar_0_2767_ap_0_1532_epoch250_WithClincal_03-31-2022 23-09-38_custom_with_clinical"
 
 
-def create_model_from_setup(
-    labels_cols, setup: ModelSetup,
-):
+def create_model_from_setup(labels_cols, setup: ModelSetup, **kwargs):
     if setup.use_custom_model:
-        model = get_multimodal_model_instance_segmentation(
-            len(labels_cols) + 1, use_clinical=setup.use_clinical,
+        print("Load custom model")
+        model = get_multimodal_model(
+            backbone=setup.backbone,
+            num_classes=len(labels_cols) + 1,
+            use_clinical=setup.use_clinical,
+            **kwargs,
         )
     else:
-        model = get_model_instance_segmentation(len(labels_cols) + 1,)
+        print("Load original model.")
+        model = get_model_instance_segmentation(
+            len(labels_cols) + 1,
+        )
 
     return model
+
+
+# def create_model_from_setup_v1(
+#     labels_cols, setup: ModelSetup,
+# ):
+#     if setup.use_custom_model:
+#         model = get_multimodal_model_instance_segmentation(
+#             len(labels_cols) + 1, use_clinical=setup.use_clinical,
+#         )
+#     else:
+#         model = get_model_instance_segmentation(len(labels_cols) + 1,)
+
+#     return model
 
 
 def get_trained_model(
@@ -81,7 +101,9 @@ def get_trained_model(
     model.to(device)
 
     model.load_state_dict(
-        torch.load(os.path.join("trained_models", model_select.value), map_location=device)
+        torch.load(
+            os.path.join("trained_models", model_select.value), map_location=device
+        )
     )
 
     if include_train_info:
