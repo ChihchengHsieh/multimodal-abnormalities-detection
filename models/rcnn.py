@@ -1,6 +1,9 @@
+from time import time
 import torch
 import warnings
 import torchvision
+import itertools
+import math
 
 from collections import OrderedDict
 from torch import nn, Tensor
@@ -45,7 +48,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
         clinical_conv_channels,
         fuse_conv_channels,
         use_clinical,
-        dropout_rate=0.2,
+        dropout_rate=0,
         image_size=256,
     ):
 
@@ -84,47 +87,100 @@ class MultimodalGeneralizedRCNN(nn.Module):
                 2, self.clinical_input_channels - self.clinical_num_len
             )
 
+            times = math.log((self.image_size / 4), 2)
+
+            assert (
+                times.is_integer(),
+                f"The times should be interger but found {times}",
+            )
+
+            expand_conv_modules = list(
+                itertools.chain.from_iterable(
+                    [
+                        [
+                            nn.Dropout2d(p=self.dropout_rate, inplace=True,),
+                            nn.ConvTranspose2d(
+                                (
+                                    self.clinical_input_channels
+                                    if i == 0
+                                    else self.clinical_conv_channels
+                                ),
+                                self.clinical_conv_channels,
+                                kernel_size=2,
+                                stride=2,
+                            ),
+                            nn.Conv2d(
+                                self.clinical_conv_channels,
+                                self.clinical_conv_channels,
+                                kernel_size=3,
+                                stride=1,
+                                padding=1,
+                            ),
+                        ]
+                        for i in range(int(times) + 1)
+                    ]
+                )
+            )
+
+            self.clinical_expand_conv = nn.Sequential(*expand_conv_modules,)
+
             self.clinical_convs = nn.ModuleDict({})
 
-            for i, k in enumerate(reversed(self.feature_keys)):
-                if i == 0:
+            for k in self.feature_keys:
 
-                    k_size = self.image_size / 64
+                self.clinical_convs[k] = nn.Sequential(
+                    nn.Dropout2d(p=self.dropout_rate, inplace=True,),
+                    nn.Conv2d(
+                        self.clinical_conv_channels,
+                        self.clinical_conv_channels,
+                        kernel_size=3,
+                        stride=2,
+                        padding=1,
+                    ),
+                )
 
-                    assert(k_size.is_integer(), f"The kernel size should be interger but found {k_size}")
+            # for i, k in enumerate(reversed(self.feature_keys)):
+            #     if i == 0:
 
-                    self.clinical_convs[k] = nn.Sequential(
-                        nn.ConvTranspose2d(
-                            self.clinical_input_channels,
-                            self.clinical_conv_channels,
-                            kernel_size=int(k_size),
-                        ),
-                        nn.Dropout2d(p=self.dropout_rate, inplace=True,),
-                        nn.Conv2d(
-                            self.clinical_conv_channels,
-                            self.clinical_conv_channels,
-                            kernel_size=3,
-                            stride=1,
-                            padding=1,
-                        ),
-                    )
-                else:
-                    self.clinical_convs[k] = nn.Sequential(
-                        nn.ConvTranspose2d(
-                            self.clinical_conv_channels,
-                            self.clinical_conv_channels,
-                            kernel_size=2,
-                            stride=2,
-                        ),
-                        nn.Dropout2d(p=self.dropout_rate, inplace=True,),
-                        nn.Conv2d(
-                            self.clinical_conv_channels,
-                            self.clinical_conv_channels,
-                            kernel_size=3,
-                            stride=1,
-                            padding=1,
-                        ),
-                    )
+            #         k_size = self.image_size / 64
+
+            #         assert (
+            #             k_size.is_integer(),
+            #             f"The kernel size should be interger but found {k_size}",
+            #         )
+
+            #         self.clinical_convs[k] = nn.Sequential(
+            #             nn.ConvTranspose2d(
+            #                 self.clinical_input_channels,
+            #                 self.clinical_conv_channels,
+            #                 kernel_size=int(k_size),
+            #             ),
+            #             nn.Dropout2d(p=self.dropout_rate, inplace=True,),
+            #             nn.Conv2d(
+            #                 self.clinical_conv_channels,
+            #                 self.clinical_conv_channels,
+            #                 kernel_size=3,
+            #                 stride=1,
+            #                 padding=1,
+            #             ),
+            #         )
+            #     else:
+            #         self.clinical_convs[k] = nn.Sequential(
+            #             nn.ConvTranspose2d(
+            #                 self.clinical_conv_channels,
+            #                 self.clinical_conv_channels,
+            #                 kernel_size=2,
+            #                 stride=2,
+            #             ),
+            #             nn.Dropout2d(p=self.dropout_rate, inplace=True,),
+            #             nn.Conv2d(
+            #                 self.clinical_conv_channels,
+            #                 self.clinical_conv_channels,
+            #                 kernel_size=3,
+            #                 stride=1,
+            #                 padding=1,
+            #             ),
+            #         )
 
             self.fuse_convs = nn.ModuleDict({})
 
@@ -156,6 +212,9 @@ class MultimodalGeneralizedRCNN(nn.Module):
         )[:, :, None, None]
 
         deconv_outs = OrderedDict({})
+
+        clinical_input = self.clinical_expand_conv(clinical_input)
+
         for k in self.clinical_convs.keys():
             clinical_input = self.clinical_convs[k](clinical_input)
             deconv_outs[k] = clinical_input
@@ -874,63 +933,8 @@ def multimodal_maskrcnn_resnet50_fpn(
     clinical_conv_channels=256,
     fuse_conv_channels=256,
     use_clinical=True,
-    **kwargs
+    **kwargs,
 ):
-    """
-    Constructs a Mask R-CNN model with a ResNet-50-FPN backbone.
-
-    Reference: `"Mask R-CNN" <https://arxiv.org/abs/1703.06870>`_.
-
-    The input to the model is expected to be a list of tensors, each of shape ``[C, H, W]``, one for each
-    image, and should be in ``0-1`` range. Different images can have different sizes.
-
-    The behavior of the model changes depending if it is in training or evaluation mode.
-
-    During training, the model expects both the input tensors, as well as a targets (list of dictionary),
-    containing:
-
-        - boxes (``FloatTensor[N, 4]``): the ground-truth boxes in ``[x1, y1, x2, y2]`` format, with
-          ``0 <= x1 < x2 <= W`` and ``0 <= y1 < y2 <= H``.
-        - labels (``Int64Tensor[N]``): the class label for each ground-truth box
-        - masks (``UInt8Tensor[N, H, W]``): the segmentation binary masks for each instance
-
-    The model returns a ``Dict[Tensor]`` during training, containing the classification and regression
-    losses for both the RPN and the R-CNN, and the mask loss.
-
-    During inference, the model requires only the input tensors, and returns the post-processed
-    predictions as a ``List[Dict[Tensor]]``, one for each input image. The fields of the ``Dict`` are as
-    follows, where ``N`` is the number of detected instances:
-
-        - boxes (``FloatTensor[N, 4]``): the predicted boxes in ``[x1, y1, x2, y2]`` format, with
-          ``0 <= x1 < x2 <= W`` and ``0 <= y1 < y2 <= H``.
-        - labels (``Int64Tensor[N]``): the predicted labels for each instance
-        - scores (``Tensor[N]``): the scores or each instance
-        - masks (``UInt8Tensor[N, 1, H, W]``): the predicted masks for each instance, in ``0-1`` range. In order to
-          obtain the final segmentation masks, the soft masks can be thresholded, generally
-          with a value of 0.5 (``mask >= 0.5``)
-
-    For more details on the output and on how to plot the masks, you may refer to :ref:`instance_seg_output`.
-
-    Mask R-CNN is exportable to ONNX for a fixed batch size with inputs images of fixed size.
-
-    Example::
-
-        >>> model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
-        >>> model.eval()
-        >>> x = [torch.rand(3, 300, 400), torch.rand(3, 500, 400)]
-        >>> predictions = model(x)
-        >>>
-        >>> # optionally, if you want to export the model to ONNX:
-        >>> torch.onnx.export(model, x, "mask_rcnn.onnx", opset_version = 11)
-
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on COCO train2017
-        progress (bool): If True, displays a progress bar of the download to stderr
-        num_classes (int): number of output classes of the model (including the background)
-        pretrained_backbone (bool): If True, returns a model with backbone pre-trained on Imagenet
-        trainable_backbone_layers (int): number of trainable (not frozen) resnet layers starting from final block.
-            Valid values are between 0 and 5, with 5 meaning all backbone layers are trainable.
-    """
     trainable_backbone_layers = torchvision.models.detection.backbone_utils._validate_trainable_layers(
         pretrained or pretrained_backbone, trainable_backbone_layers, 5, 3
     )
@@ -938,6 +942,7 @@ def multimodal_maskrcnn_resnet50_fpn(
     if pretrained:
         # no need to download the backbone if pretrained is set
         pretrained_backbone = False
+
     backbone = torchvision.models.detection.backbone_utils.resnet_fpn_backbone(
         "resnet50", pretrained_backbone, trainable_layers=trainable_backbone_layers
     )
@@ -950,7 +955,7 @@ def multimodal_maskrcnn_resnet50_fpn(
         clinical_conv_channels=clinical_conv_channels,
         fuse_conv_channels=fuse_conv_channels,
         use_clinical=use_clinical,
-        **kwargs
+        **kwargs,
     )
 
     if pretrained:
@@ -962,6 +967,7 @@ def multimodal_maskrcnn_resnet50_fpn(
         torchvision.models.detection._utils.overwrite_eps(model, 0.0)
     else:
         print("Not using pretrained model.")
+
     return model
 
 
@@ -973,7 +979,7 @@ def get_model_instance_segmentation(
     rpn_score_thresh=0.0,
     box_score_thresh=0.05,
     **kwargs,
-    ):
+):
     # load an instance segmentation model pre-trained on COCO
     model = torchvision.models.detection.maskrcnn_resnet50_fpn(
         pretrained=False,

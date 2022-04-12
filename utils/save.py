@@ -11,12 +11,14 @@ from utils.engine import xami_evaluate
 import utils.print as print_f
 from models.load import TrainingInfo
 
+
 def get_train_data(loger):
     train_data = {}
     for k in loger.meters.keys():
         train_data[k] = loger.meters[k].avg
 
     return train_data
+
 
 def save_model(
     epoch,
@@ -75,10 +77,9 @@ def load_model(
     return model, training_record
 
 
-
 ###########################################################
 def save_model_with_training_info(
-    train_info: TrainingInfo, model, val_ar, val_ap, test_ar, test_ap,
+    train_info: TrainingInfo, model, val_ar, val_ap, test_ar, test_ap, optim=None
 ):
     current_time_string = datetime.now().strftime("%m-%d-%Y %H-%M-%S")
 
@@ -96,8 +97,18 @@ def save_model_with_training_info(
     train_info.final_model_path = model_path
 
     torch.save(
-        model.state_dict(), os.path.join(os.path.join("trained_models", train_info.final_model_path )),
+        model.state_dict(),
+        os.path.join(os.path.join("trained_models", train_info.final_model_path)),
     )
+
+    # Save optimizer if necessary.
+    if optim:
+        torch.save(
+            optim.state_dict(),
+            os.path.join(
+                os.path.join("trained_models", f"{train_info.final_model_path}_optim")
+            ),
+        )
 
     with open(
         os.path.join("training_records", f"{train_info.final_model_path }.pkl"), "wb",
@@ -105,6 +116,7 @@ def save_model_with_training_info(
         pickle.dump(train_info, train_info_f)
 
     return train_info
+
 
 def remove_previous_model(previous_model):
     if not previous_model is None:
@@ -116,7 +128,10 @@ def remove_previous_model(previous_model):
             os.remove(os.path.join("training_records", f"{previous_model}.pkl"))
         print(f"Previous model: [{previous_model}] has been remove!!")
 
-def check_best(train_info: TrainingInfo, eval_params_dict, model, test_dataloader, device):
+
+def check_best(
+    train_info: TrainingInfo, eval_params_dict, model, optim, test_dataloader, device
+):
     val_ar, val_ap = get_ar_ap(train_info.val_evaluators[-1])
 
     ## Targeting the model with higher Average Recall and Average Precision.
@@ -132,12 +147,13 @@ def check_best(train_info: TrainingInfo, eval_params_dict, model, test_dataloade
             ## Save best validation model
             previous_ar_model = deepcopy(train_info.best_ar_val_model_path)
             train_info = save_model_with_training_info(
-                train_info=train_info, 
+                train_info=train_info,
                 model=model,
                 val_ar=val_ar,
                 val_ap=val_ap,
                 test_ar=test_ar,
                 test_ap=test_ap,
+                optim=optim,
             )
             train_info.best_ar_val_model_path = train_info.final_model_path
             train_info.best_val_ar = val_ar
@@ -146,22 +162,30 @@ def check_best(train_info: TrainingInfo, eval_params_dict, model, test_dataloade
         if val_ap > train_info.best_val_ap:
             previous_ap_model = deepcopy(train_info.best_ap_val_model_path)
             train_info = save_model_with_training_info(
-                train_info=train_info, 
+                train_info=train_info,
                 model=model,
                 val_ar=val_ar,
                 val_ap=val_ap,
                 test_ar=test_ar,
                 test_ap=test_ap,
+                optim=optim,
             )
             train_info.best_ap_val_model_path = train_info.final_model_path
             train_info.best_val_ap = val_ap
             remove_previous_model(previous_ap_model)
-            
+
     return val_ar, val_ap, train_info
 
 
 def end_train(
-    train_info: TrainingInfo, model, eval_params_dict, last_val_ar, last_val_ap, test_dataloader, device
+    train_info: TrainingInfo,
+    model,
+    optim,
+    eval_params_dict,
+    last_val_ar,
+    last_val_ap,
+    test_dataloader,
+    device,
 ):
     train_info.end_t = datetime.now()
     sec_took = (train_info.end_t - train_info.start_t).seconds
@@ -192,6 +216,7 @@ def end_train(
         val_ap=last_val_ap,
         test_ar=test_ar,
         test_ap=test_ap,
+        optim=optim,
     )
 
     print_f.print_title(

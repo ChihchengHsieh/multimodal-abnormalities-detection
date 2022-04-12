@@ -1,4 +1,5 @@
 from enum import Enum
+from io import UnsupportedOperation
 from turtle import back
 
 from .detectors import multimodal_maskrcnn_swin_fpn
@@ -10,21 +11,24 @@ from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 
 def get_multimodal_model(
     num_classes,
-    backbone,
+    setup,
     **kwargs,
 ):
-    if backbone ==  'resnet50':
+    if setup.backbone ==  'resnet50':
         print("Using ResNet50 as backbone")
         model = multimodal_maskrcnn_resnet50_fpn(
-            pretrained=False,
+            pretrained=setup.pretrained,
             **kwargs,
         )
 
-    elif backbone == 'swin':
+    elif setup.backbone == 'swin':
         print("Using SwinTransformer as backbone")
         model = multimodal_maskrcnn_swin_fpn(
             **kwargs,
         )
+    
+    else:
+        raise Exception(f"Unsupported backbone {setup.backbone}")
 
     # get number of input features for the classifier
     in_features = model.roi_heads.box_predictor.cls_score.in_features
