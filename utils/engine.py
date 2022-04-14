@@ -6,7 +6,7 @@ from .coco_utils import get_coco_api_from_dataset
 from .coco_eval import CocoEvaluator
 
 from . import detect_utils
-from .helpers import map_target_to_device
+from data.helpers import map_target_to_device
 
 from models.detectors.rcnn import MultimodalMaskRCNN
 from .pred import pred_thrs_check
