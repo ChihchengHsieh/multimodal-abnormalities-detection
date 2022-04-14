@@ -1,20 +1,13 @@
-import json
-import tempfile
-
+import json, copy, torch, torch._six
 import numpy as np
-import copy
-import time
-import torch
-import torch._six
+import pycocotools.mask as mask_util
+
 
 from pycocotools.cocoeval import COCOeval
 from pycocotools.coco import COCO
-import pycocotools.mask as mask_util
-
 from collections import defaultdict
-
-from utils import detect_utils
-from utils.coco_utils import get_coco_api_from_dataset
+from . import detect_utils
+from .coco_utils import get_coco_api_from_dataset
 from pycocotools.cocoeval import Params
 
 
@@ -33,7 +26,7 @@ def get_eval_params_dict(
         )
     )
 
-    max_dets = max_dets if not max_dets is None else [1, 8, 10, 100]
+    max_dets = max_dets if not max_dets is None else [1, 10]
 
     eval_params_dict = {
         iou_type: Params(iouType=iou_type) for iou_type in ["bbox", "segm"]
@@ -42,8 +35,8 @@ def get_eval_params_dict(
     eval_params_dict["bbox"].iouThrs = iou_thrs
     eval_params_dict["segm"].iouThrs = iou_thrs
 
-    eval_params_dict["bbox"].maxDets = [1, 6, 10, 100]
-    eval_params_dict["segm"].maxDets = [1, 6, 10, 100]
+    eval_params_dict["bbox"].maxDets = [1, 10]
+    eval_params_dict["segm"].maxDets = [1, 10]
 
     coco_gt = get_coco_api_from_dataset(dataset)
 
@@ -56,30 +49,6 @@ def get_eval_params_dict(
     eval_params_dict["segm"].useIoBB = False
 
     return eval_params_dict
-
-
-def get_ar_ap(
-    evaluator, areaRng="all", iouThr=0.5, maxDets=10,
-):
-    ar = external_summarize(
-        evaluator.coco_eval["bbox"],
-        ap=0,
-        areaRng=areaRng,
-        iouThr=iouThr,
-        maxDets=maxDets,
-        print_result=False,
-    )
-
-    ap = external_summarize(
-        evaluator.coco_eval["bbox"],
-        ap=1,
-        areaRng=areaRng,
-        iouThr=iouThr,
-        maxDets=maxDets,
-        print_result=False,
-    )
-
-    return ar, ap
 
 
 class CocoEvaluator(object):

@@ -3,7 +3,7 @@ import torch, os
 from dataclasses import dataclass
 from models.rcnn import (
     get_multimodal_model_instance_segmentation,
-    get_model_instance_segmentation,
+    get_original_model_maskrcnn_resnet50_fpn,
 )
 import torch
 from enum import Enum
@@ -60,7 +60,7 @@ def get_trained_model(
         )
 
     else:
-        model = get_model_instance_segmentation(len(dataset.labels_cols) + 1,)
+        model = get_original_model_maskrcnn_resnet50_fpn(len(dataset.labels_cols) + 1,)
 
     model.to(device)
     model.load_state_dict(
@@ -87,7 +87,7 @@ def create_model_from_setup(
             len(dataset.labels_cols) + 1, use_clinical= setup.use_clinical,
         )
     else:
-        model = get_model_instance_segmentation(len(dataset.labels_cols) + 1,)
+        model = get_original_model_maskrcnn_resnet50_fpn(len(dataset.labels_cols) + 1,)
 
     model.to(device)
     

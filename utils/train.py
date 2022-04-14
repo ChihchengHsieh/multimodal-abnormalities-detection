@@ -1,6 +1,9 @@
 import torch
+import torch.nn as nn
 
-def get_optimiser(model, setup):
+from models.setup import ModelSetup
+
+def get_optimiser(model: nn.Module , setup: ModelSetup):
 
     params = [p for p in model.parameters() if p.requires_grad]
     print(f"Model size: {sum([param.nelement()  for param in model.parameters()]):,}")

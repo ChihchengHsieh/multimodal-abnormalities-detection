@@ -1,21 +1,24 @@
 import PIL
-
+from matplotlib.figure import Figure
 import numpy as np
 import matplotlib.pyplot as plt
+import torch.nn as nn
 
+from typing import Callable, Dict, List, Union, Tuple
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
+from matplotlib import colors
 from utils.pred import pred_thrs_check
-
 from utils.save import get_train_data
-from utils.map import map_target_to_device
-from data.dataset import collate_fn
-
+from data.datasets import ReflacxDataset, collate_fn
 from utils.detect_utils import MetricLogger
-from utils.coco_eval import external_summarize
+from utils.coco_eval import CocoEvaluator, external_summarize
 
 
-def transparent_cmap(cmap, N=255):
+def transparent_cmap(
+    cmap: colors.LinearSegmentedColormap, N: int = 255
+) -> colors.LinearSegmentedColormap:
+
     "Copy colormap and set alpha values"
 
     t_cmap = cmap
@@ -25,7 +28,7 @@ def transparent_cmap(cmap, N=255):
     return t_cmap
 
 
-disease_cmap = {
+DISEASE_CMAP: Dict = {
     "transparent": {
         "Enlarged cardiac silhouette": transparent_cmap(plt.cm.autumn),
         "Atelectasis": transparent_cmap(plt.cm.Reds),
@@ -43,15 +46,15 @@ disease_cmap = {
 }
 
 
-def get_legend_elements(disease_cmap_solid):
+def get_legend_elements(disease_cmap_solid: Dict[str, str]) -> List[Line2D]:
     legend_elements = []
     for k, v in disease_cmap_solid.items():
         legend_elements.append(Line2D([0], [0], color=v, lw=4, label=k))
 
     return legend_elements
 
-def plot_loss(train_logers):
 
+def plot_loss(train_logers: Union[List[MetricLogger], List[Dict]]):
     if isinstance(train_logers[0], MetricLogger):
         train_data = [get_train_data(loger) for loger in train_logers]
     else:
@@ -81,11 +84,14 @@ def plot_loss(train_logers):
 
 
 def plot_evaluator(
-    evaluators, iouThr=0.5, areaRng="all", maxDets=10,
-):
+    evaluators: List[CocoEvaluator],
+    iouThr: float = 0.5,
+    areaRng: str = "all",
+    maxDets: int = 10,
+) -> Figure:
 
-    all_precisions = []
-    all_recalls = []
+    all_precisions: List[float] = []
+    all_recalls: List[float] = []
 
     for i in range(len(evaluators)):
 
@@ -117,10 +123,7 @@ def plot_evaluator(
 
     precision_ax.set_title("Precision")
     precision_ax.plot(
-        all_precisions,
-        marker="o",
-        label="Precision",
-        color="darkorange",
+        all_precisions, marker="o", label="Precision", color="darkorange",
     )
     precision_ax.legend(loc="upper left")
     recall_ax.set_title("Recall")
@@ -136,15 +139,23 @@ def plot_evaluator(
 
     return fig
 
+
 def plot_train_val_evaluators(
-    train_evaluators, val_evaluators,iouThr=0.5, areaRng="all", maxDets=10,
-):
+    train_evaluators: List[CocoEvaluator],
+    val_evaluators: List[CocoEvaluator],
+    iouThr=0.5,
+    areaRng="all",
+    maxDets=10,
+) -> Figure:
+    """
+    Plot both training and validation evaluator during training to check overfitting.
+    """
 
-    train_precisions = []
-    train_recalls = []
+    train_precisions: List[float] = []
+    train_recalls: List[float] = []
 
-    val_precisions = []
-    val_recalls = []
+    val_precisions: List[float] = []
+    val_recalls: List[float] = []
 
     for i in range(len(train_evaluators)):
         train_precisions.append(
@@ -197,16 +208,10 @@ def plot_train_val_evaluators(
 
     precision_ax.set_title("Precision")
     precision_ax.plot(
-        train_precisions,
-        marker="o",
-        label="train",
-        color="royalblue",
+        train_precisions, marker="o", label="train", color="royalblue",
     )
     precision_ax.plot(
-        val_precisions,
-        marker="o",
-        label="validation",
-        color="darkorange",
+        val_precisions, marker="o", label="validation", color="darkorange",
     )
     precision_ax.legend(loc="upper left")
 
@@ -228,15 +233,18 @@ def plot_train_val_evaluators(
     return fig
 
 
-
 def plot_seg(
-    target,
-    pred,
-    label_idx_to_disease,
-    legend_elements,
-    transparent_disease_color_code_map,
-    seg_thres=0,
-):
+    target: List[Dict],
+    pred: List[Dict],
+    label_idx_to_disease: Callable[[int], str],
+    legend_elements: List[Line2D],
+    transparent_disease_color_code_map: Dict[str, colors.LinearSegmentedColormap],
+    seg_thres: float = 0,
+) -> Figure:
+    """
+    Plot segmentation prediction.
+    """
+
     fig, (gt_ax, pred_ax) = plt.subplots(1, 2, figsize=(20, 10), dpi=80, sharex=True)
 
     fig.suptitle(target["image_path"])
@@ -277,10 +285,16 @@ def plot_seg(
             alpha=0.7,
         )
 
+    return fig
+
 
 def plot_bbox(
-    target, pred, label_idx_to_disease, legend_elements, disease_color_code_map
-):
+    target: List[Dict],
+    pred: List[Dict],
+    label_idx_to_disease: Callable[[int], str],
+    legend_elements: List[Line2D],
+    disease_color_code_map: Dict[str, str],
+) -> Figure:
 
     fig, (gt_ax, pred_ax) = plt.subplots(1, 2, figsize=(20, 10), dpi=80, sharex=True)
 
@@ -350,19 +364,20 @@ def plot_bbox(
     plt.plot()
     plt.pause(0.01)
 
+    return fig
 
 
 def plot_result(
-    model,
-    dataset,
-    device,
-    idx,
-    legend_elements,
-    disease_cmap,
+    model: nn.Module,
+    dataset: ReflacxDataset,
+    device: str,
+    idx: int,
+    legend_elements: List[Line2D],
+    disease_cmap=DISEASE_CMAP,
     seg=False,
     seg_thres=0.5,
-    score_thres=None,
-):
+    score_thres: Dict = None,
+) -> Tuple[Figure, Union[Figure, None]]:
     model.eval()
     data = collate_fn([dataset[idx]])
     data = dataset.prepare_input_from_data(data, device)
@@ -373,7 +388,7 @@ def plot_result(
     if not score_thres is None:
         pred = pred_thrs_check(pred, dataset, score_thres, device)
 
-    plot_bbox(
+    bb_fig = plot_bbox(
         target[0],
         pred,
         dataset.label_idx_to_disease,
@@ -381,8 +396,10 @@ def plot_result(
         disease_cmap["solid"],
     )
 
+    seg_fig = None
+
     if seg:
-        plot_seg(
+        seg_fig = plot_seg(
             target[0],
             pred,
             dataset.label_idx_to_disease,
@@ -390,4 +407,6 @@ def plot_result(
             disease_cmap["transparent"],
             seg_thres=seg_thres,
         )
+
+    return bb_fig, seg_fig
 

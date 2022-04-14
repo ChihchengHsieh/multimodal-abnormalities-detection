@@ -1,14 +1,5 @@
 import numpy as np
 
-labels_cols = [
-    "Enlarged cardiac silhouette",
-    "Atelectasis",
-    "Pleural abnormality",
-    "Consolidation",
-    "Pulmonary edema",
-    #  'Groundglass opacity', # 6th disease.
-]
-
 full_iou_thrs = np.array(
     [
         0.00,
@@ -34,5 +25,3 @@ full_iou_thrs = np.array(
         1.0,
     ]
 )
-
-XAMI_MIMIC_PATH = "D:\XAMI-MIMIC"
