@@ -284,14 +284,17 @@ def external_summarize(
 ):
     p = evaluator.params
     io_type_str = "IoBB" if p.useIoBB == True else " IoU"
-    iStr = " {:<18} {} @[ IoU={:<9} | area={:>6s} | maxDets={:>3d} ] = {:0.3f}"
     titleStr = "Average Precision" if ap == 1 else "Average Recall"
     typeStr = "(AP)" if ap == 1 else "(AR)"
-    iouStr = (
-        "{:0.2f}:{:0.2f}".format(p.iouThrs[0], p.iouThrs[-1])
-        if iouThr is None
-        else "{:0.2f}".format(iouThr)
-    )
+
+    if iouThr is not None:
+        if isinstance(iouThr, float):
+            f"{iouThr:0.2f}"
+        elif isinstance(iouThr, list):
+            iouStr = f"{iouThr[0]:0.2f}:{iouThr[-1]:0.2f}"
+            
+    else:
+        iouStr = f"{p.iouThrs[0]:0.2f}:{p.iouThrs[-1]:0.2f}"
 
     aind = [i for i, aRng in enumerate(p.areaRngLbl) if aRng == areaRng]
     mind = [i for i, mDet in enumerate(p.maxDets) if mDet == maxDets]
@@ -300,15 +303,26 @@ def external_summarize(
         s = evaluator.eval["precision"]
         # IoU
         if iouThr is not None:
-            t = np.where(iouThr == p.iouThrs)[0]
-            s = s[t]
+            if isinstance(iouThr, float):
+                t = np.where(iouThr == p.iouThrs)[0]
+                s = s[t]
+            elif isinstance(iouThr, list):
+                t_start = np.where(iouThr[0] == p.iouThrs)[0]
+                t_end = np.where(iouThr[1] == p.iouThrs)[0]
+                s = s[t_start[0] : (t_end[0] + 1)]
+
         s = s[:, :, :, aind, mind]
     else:
         # dimension of recall: [TxKxAxM]
         s = evaluator.eval["recall"]
         if iouThr is not None:
-            t = np.where(iouThr == p.iouThrs)[0]
-            s = s[t]
+            if isinstance(iouThr, float):
+                t = np.where(iouThr == p.iouThrs)[0]
+                s = s[t]
+            elif isinstance(iouThr, list):
+                t_start = np.where(iouThr[0] == p.iouThrs)[0]
+                t_end = np.where(iouThr[1] == p.iouThrs)[0]
+                s = s[t_start[0] : (t_end[0] + 1)]
         s = s[:, :, aind, mind]
     if len(s[s > -1]) == 0:
         mean_s = -1
@@ -316,11 +330,8 @@ def external_summarize(
         mean_s = np.mean(s[s > -1])
 
     if print_result:
-        print(
-            iStr.format(
-                titleStr, typeStr, io_type_str, iouStr, areaRng, maxDets, mean_s
-            )
-        )
+        print(f"{titleStr:<18} {typeStr} @[ {io_type_str}={iouStr:<9} | area={areaRng:>6s} | maxDets={maxDets:>3d} ] = {mean_s:0.3f}")
+
     return mean_s
 
 

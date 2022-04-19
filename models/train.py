@@ -2,6 +2,7 @@ from datetime import datetime
 from .setup import ModelSetup
 from enum import Enum
 
+
 class TrainedModels(Enum):
 
     # custom_without_clinical_pretrained
@@ -33,7 +34,8 @@ class TrainedModels(Enum):
     custom_with_clinical_swim_ar = "val_ar_0_4182_ap_0_1406_test_ar_0_4256_ap_0_0967_epoch44_WithClincal_04-10-2022 18-17-49_custom_with_clinical_swim"
     custom_with_clinical_swim_ap = "val_ar_0_3589_ap_0_1554_test_ar_0_4126_ap_0_1312_epoch41_WithClincal_04-10-2022 18-09-37_custom_with_clinical_swim"
     custom_with_clinical_swim_final = "val_ar_0_3008_ap_0_0923_test_ar_0_3878_ap_0_1092_epoch50_WithClincal_04-10-2022 18-33-30_custom_with_clinical_swim"
-    
+
+
 # class TrainedModels(Enum):
 #     original = "val_ar_0_5230_ap_0_2576_test_ar_0_5678_ap_0_2546_epoch28_WithoutClincal_03-28-2022 06-56-13_original"
 #     custom_without_clinical = "val_ar_0_4575_ap_0_2689_test_ar_0_4953_ap_0_2561_epoch40_WithoutClincal_03-28-2022 09-15-40_custom_without_clinical"
@@ -63,3 +65,19 @@ class TrainingInfo:
         self.end_t = None
         self.epoch = 0
         super(TrainingInfo).__init__()
+
+    def __str__(self):
+        title = "=" * 40 + f"For Training [{self.model_setup.name}]" + "=" * 40
+        section_divider = len(title) * "="
+
+        return (
+            title + "\n" + str(self.model_setup) + "\n" + section_divider + "\n\n"
+            f"Best AP validation model has been saved to: [{self.best_ap_val_model_path}]"
+            + "\n"
+            f"Best AR validation model has been saved to: [{self.best_ar_val_model_path}]"
+            + "\n"
+            f"The final model has been saved to: [{self.final_model_path}]"
+            + "\n\n"
+            + section_divider
+        )
+

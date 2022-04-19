@@ -6,6 +6,7 @@ from utils.train import get_optimiser
 from .build import create_model_from_setup
 from .train import TrainedModels, TrainingInfo
 from torch.optim.optimizer import Optimizer 
+from .setup import ModelSetup
 
 def get_trained_model(
     model_select: TrainedModels, labels_cols, device, **kwargs,
@@ -29,7 +30,7 @@ def get_trained_model(
 
     if os.path.isfile(optim_path):
         print("Found optimizer for this model.")
-        optim: torch.optim.optimizer.Optimizer = get_optimiser(train_info.model_setup)
+        optim: torch.optim.optimizer.Optimizer = get_optimiser(model,train_info.model_setup)
         optim.load_state_dict(
             torch.load(
                 os.path.join("trained_models", f"{train_info.final_model_path}_optim"),
@@ -51,6 +52,11 @@ def get_current_epoch(trained_model: TrainedModels) -> int:
         ).replace("epoch", "")
     )
 
-
 def get_model_name(trained_model: TrainedModels) -> str:
     return str(trained_model).split(".")[-1]
+
+def get_model_label(trained_modelL: TrainedModels)-> str:
+    return get_model_name(trained_modelL) + f" (epoch: {get_current_epoch(trained_modelL)})" 
+
+def get_dataset_label(dataset, select_model):
+    return dataset + f" (epoch: {get_current_epoch(select_model)})"
