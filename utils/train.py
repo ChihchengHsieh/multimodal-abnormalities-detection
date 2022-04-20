@@ -26,3 +26,6 @@ def get_optimiser(model: nn.Module , setup: ModelSetup):
         raise Exception(f"Unsupported optimiser {setup.optimiser}")
 
     return optimiser
+
+def num_params(model):
+    return sum([param.nelement()  for param in model.parameters()])

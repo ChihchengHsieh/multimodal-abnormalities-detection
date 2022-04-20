@@ -1,6 +1,6 @@
 import os, pickle, torch
 import torch.nn as nn
-from typing import Tuple, Union
+from typing import Dict, Tuple, Union
 from utils.train import get_optimiser
 
 from .build import create_model_from_setup
@@ -52,11 +52,13 @@ def get_current_epoch(trained_model: TrainedModels) -> int:
         ).replace("epoch", "")
     )
 
-def get_model_name(trained_model: TrainedModels) -> str:
-    return str(trained_model).split(".")[-1]
+def get_model_name(trained_model: TrainedModels, naming_map: Dict[TrainedModels, str]= None) -> str:
+   return naming_map[trained_model] if naming_map else str(trained_model).split(".")[-1]
 
-def get_model_label(trained_modelL: TrainedModels)-> str:
-    return get_model_name(trained_modelL) + f" (epoch: {get_current_epoch(trained_modelL)})" 
+
+
+def get_model_label(trained_modelL: TrainedModels, naming_map: Dict[TrainedModels, str])-> str:
+    return get_model_name(trained_modelL, naming_map) + f" (epoch: {get_current_epoch(trained_modelL)})" 
 
 def get_dataset_label(dataset, select_model):
     return dataset + f" (epoch: {get_current_epoch(select_model)})"

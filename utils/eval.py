@@ -30,7 +30,6 @@ def get_ar_ap(
 
     return ar, ap
 
-
 def save_iou_results(evaluator: CocoEvaluator, suffix: str, model_path: str):
     ap_ar_dict = OrderedDict(
         {thrs: [] for thrs in evaluator.coco_eval["bbox"].params.iouThrs}
