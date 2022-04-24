@@ -20,7 +20,8 @@ In this task, we retrieve the bounidng boxes from *REFLACX* dataset. However, th
 
 As we replace the resnet50 by resnet18, the training graph showing this.
 
-<img width="605" alt="image" src="https://user-images.githubusercontent.com/37566901/164971291-3e50f4ac-e0b2-4950-bad1-4a5327bfbc9d.png">
+<img width="603" alt="image" src="https://user-images.githubusercontent.com/37566901/164976916-dad2472c-dd4c-4e6c-955d-59643dc0e19c.png">
+
 
 As the figure shown, it started showing the overfitting at around 235th epoch. From here, our next move is to increase `learning rate` (to boost the training speed, it's slow and took more than 10 hours to converge) and `weight_decay` (see if the model remain trainable).
 
