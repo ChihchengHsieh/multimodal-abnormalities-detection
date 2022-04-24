@@ -13,3 +13,15 @@ And this is the architecture we proposed to cope with image and tabular data at 
 To make the architecture more understandable, the we use the MobileNet as the backebone of the detector network, and the Feature Pyramid Network (FPN) is mentioned in the figures above. However, the MobileNet can be replaced by any others networks that can process image data. And, the FPN are often used to improve the model performance. 
 
 In this task, we retrieve the bounidng boxes from *REFLACX* dataset. However, this dataset actually provide the bouding ellipses but not bounding boxes. We simply transform their bounding ellipses to boxes that containg those ellipses. The segmentation lable is also transformed form the bounding boxes. The reason using Mask RCNN rather than Faster RCNN is that we found the peformance slightly improve by adding the segmentation head in the output. And, this is the case in [this work](https://www.sciencedirect.com/science/article/abs/pii/S0263224119305202).
+
+
+
+# Dealing with overfitting.
+
+As we replace the resnet50 by resnet18, the training graph showing this.
+
+<img width="605" alt="image" src="https://user-images.githubusercontent.com/37566901/164971291-3e50f4ac-e0b2-4950-bad1-4a5327bfbc9d.png">
+
+As the figure shown, it started showing the overfitting at around 235th epoch. From here, our next move is to increase `learning rate` and `weight_decay`,
+
+
