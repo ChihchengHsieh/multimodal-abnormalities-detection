@@ -121,3 +121,138 @@ ModelSetup(
    
 ```
 <img width="597" alt="image" src="https://user-images.githubusercontent.com/37566901/165158376-d92dfa88-34da-46f9-ad8d-d5f79f73cf16.png">
+
+```
+    ModelSetup(
+        name="overfitting_1",
+        use_clinical=False,
+        use_custom_model=True,
+        use_early_stop_model=True,
+        backbone="mobilenet_v3",
+        optimiser="sgd",
+        lr=1e-2,
+        pretrained=True,
+        dataset_mode="unified",
+        image_size=256,
+        weight_decay=1e-3,
+        record_training_performance=True,
+        using_fpn=False,
+        backbone_out_channels=16,  # shrink size test [32]
+        representation_size=64,  # shrink size test [128]
+        mask_hidden_layers=256,
+        use_mask=False,
+    )
+```
+
+<img width="602" alt="image" src="https://user-images.githubusercontent.com/37566901/165170612-c272868a-fcd6-41c9-8929-caf74c7d7e96.png">
+
+
+## Using a larger lr
+
+```
+    ModelSetup(
+        name="overfitting_1",
+        use_clinical=False,
+        use_custom_model=True,
+        use_early_stop_model=True,
+        backbone="mobilenet_v3",
+        optimiser="sgd",
+        lr=5e-2,
+        pretrained=True,
+        dataset_mode="unified",
+        image_size=256,
+        weight_decay=1e-3,
+        record_training_performance=True,
+        using_fpn=False,
+        backbone_out_channels=16,  # shrink size test [32]
+        representation_size=64,  # shrink size test [128]
+        mask_hidden_layers=256,
+        use_mask=False,
+    ),
+    
+```
+
+### Shrink representation size:
+
+
+```
+ModelSetup(
+        name="overfitting_1",
+        use_clinical=False,
+        use_custom_model=True,
+        use_early_stop_model=True,
+        backbone="mobilenet_v3",
+        optimiser="sgd",
+        lr=1e-2,
+        pretrained=True,
+        dataset_mode="unified",
+        image_size=256,
+        weight_decay=1e-3,
+        record_training_performance=True,
+        using_fpn=False,
+        backbone_out_channels=16,  # shrink size test [32]
+        representation_size=32,  # shrink size test [128]
+        # mask_hidden_layers=64,
+        use_mask=False,
+    )
+```
+
+This one can try
+
+###  custom  model (smaller)
+
+```
+[model]: 197,497
+[model.backbone]: 166,736
+[model.rpn]: 3,595
+[model.roi_heads]: 27,166
+[model.roi_heads.box_head]: 26,176
+[model.roi_heads.box_head.fc6]: 25,120
+[model.roi_heads.box_head.fc7]: 1,056
+[model.roi_heads.box_predictor]: 990
+
+ModelSetup(
+        name="overfitting_1",
+        use_clinical=False,
+        use_custom_model=True,
+        use_early_stop_model=True,
+        backbone="custom", # [mobilenet_v3]
+        optimiser="sgd",
+        lr=1e-2,
+        pretrained=True,
+        dataset_mode="unified",
+        image_size=256,
+        weight_decay=1e-3,
+        record_training_performance=True,
+        using_fpn=False,
+        backbone_out_channels=16,  # shrink size test [32]
+        representation_size=32,  # shrink size test [128, 64]
+        # mask_hidden_layers=64,
+        use_mask=False,
+    )
+```
+
+
+### This is pretty close to the regulation limit.
+
+```
+ModelSetup(
+        name="overfitting_1",
+        use_clinical=False,
+        use_custom_model=True,
+        use_early_stop_model=True,
+        backbone="mobilenet_v3",
+        optimiser="sgd",
+        lr=1e-2,
+        pretrained=True,
+        dataset_mode="unified",
+        image_size=256,
+        weight_decay=1e-3,
+        record_training_performance=True,
+        using_fpn=False,
+        backbone_out_channels=16,  # shrink size test [32]
+        representation_size=64,  # shrink size test [128]
+        mask_hidden_layers=256,
+        use_mask=False,
+    ),
+```
