@@ -90,13 +90,34 @@ ModelSetup(
 And another,
 
 ```
-[model]: 3,141,215
+ModelSetup(
+    name="overfitting_1",
+    use_clinical=False,
+    use_custom_model=True,
+    use_early_stop_model=True,
+    backbone="mobilenet_v3",
+    optimiser="sgd",
+    lr=1e-2,
+    pretrained=True,
+    dataset_mode="unified",
+    image_size=256,
+    weight_decay=1e-3,
+    record_training_performance=True,
+    using_fpn=False,
+    backbone_out_channels=16,  # shrink size test [32]
+    representation_size=128,  # shrink size test [128]
+    mask_hidden_layers=256,
+    use_mask=False,
+)
+    
+[model]: 1,134,425
 [model.backbone]: 1,009,968
 [model.rpn]: 3,595
-[model.roi_heads]: 2,127,652
-[model.roi_heads.mask_head]: 1,807,360
-[model.roi_heads.box_head]: 54,400
-[model.roi_heads.box_head.fc6]: 50,240
-[model.roi_heads.box_head.fc7]: 4,160
-[model.roi_heads.box_predictor]: 1,950
+[model.roi_heads]: 120,862
+[model.roi_heads.box_head]: 116,992
+[model.roi_heads.box_head.fc6]: 100,480
+[model.roi_heads.box_head.fc7]: 16,512
+[model.roi_heads.box_predictor]: 3,870
+   
 ```
+<img width="597" alt="image" src="https://user-images.githubusercontent.com/37566901/165158376-d92dfa88-34da-46f9-ad8d-d5f79f73cf16.png">
