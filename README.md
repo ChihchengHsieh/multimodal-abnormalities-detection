@@ -26,4 +26,37 @@ As we replace the resnet50 by resnet18, the training graph showing this.
 As the figure shown, it started showing the overfitting at around 235th epoch. From here, our next move is to increase `learning rate` (to boost the training speed, it's slow and took more than 10 hours to converge) and `weight_decay` (see if the model remain trainable).
 
 <img width="602" alt="image" src="https://user-images.githubusercontent.com/37566901/164991636-b48100b7-3c53-4b94-9697-38029289599b.png">
-(S)
+And the figure above is the result using larger `learning_rate` and `weight_decay`.
+
+```
+[model]: 36,233,555
+[model.backbone]: 3,602,468
+[model.rpn]: 2,435,595
+[model.roi_heads]: 30,195,492
+[model.roi_heads.mask_head]: 2,959,360
+[model.roi_heads.box_head]: 26,941,440 # most of the parameters living inside here.
+[model.roi_heads.box_head.fc6]: 25,891,840
+[model.roi_heads.box_head.fc7]: 1,049,600
+[model.roi_heads.box_predictor]: 30,750
+```
+
+And I found that most of the parameters living inside the model is in the `model.roi_heads.box_head`, which is constructed with 
+
+```python
+box_head = TwoMLPHead(out_channels * resolution ** 2, representation_size)
+```
+
+And, the `out_channels` is the channel size of image NN output. 
+
+The next experiment we do is to shrink the model `out_channels` to `16`.
+
+However, the overfitting still remained.
+
+<img width="599" alt="image" src="https://user-images.githubusercontent.com/37566901/165051475-e241f8cd-5c71-439f-b62d-25ea3887f620.png">
+
+so we tried another setting:
+
+```
+
+```
+
