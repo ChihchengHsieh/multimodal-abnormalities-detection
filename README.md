@@ -54,9 +54,49 @@ However, the overfitting still remained.
 
 <img width="599" alt="image" src="https://user-images.githubusercontent.com/37566901/165051475-e241f8cd-5c71-439f-b62d-25ea3887f620.png">
 
-so we tried another setting:
+so we tried another setting, which gave us this model:
 
 ```
+[model]: 3,434,031
+[model.backbone]: 1,092,928
+[model.rpn]: 11,723
+[model.roi_heads]: 2,329,380
+[model.roi_heads.mask_head]: 1,844,224
+[model.roi_heads.box_head]: 217,344
+[model.roi_heads.box_head.fc6]: 200,832
+[model.roi_heads.box_head.fc7]: 16,512
+[model.roi_heads.box_predictor]: 3,870
+
+ModelSetup(
+    name="overfitting_1",
+    use_clinical=False,
+    use_custom_model=True,
+    use_early_stop_model=True,
+    backbone="mobilenet_v3",
+    optimiser="sgd",
+    lr=1e-2,
+    pretrained=True,
+    dataset_mode="unified",
+    image_size=256,
+    weight_decay=5e-3,
+    record_training_performance=True,
+    using_fpn=False,
+    backbone_out_channels=32, # shrink size test [32]
+    representation_size=128, # shrink size test [128]
+)
+```
+<img width="594" alt="image" src="https://user-images.githubusercontent.com/37566901/165109242-e41dd0d4-674e-46fa-a1ad-3c90fd352826.png">
+
+And another,
 
 ```
-
+[model]: 3,141,215
+[model.backbone]: 1,009,968
+[model.rpn]: 3,595
+[model.roi_heads]: 2,127,652
+[model.roi_heads.mask_head]: 1,807,360
+[model.roi_heads.box_head]: 54,400
+[model.roi_heads.box_head.fc6]: 50,240
+[model.roi_heads.box_head.fc7]: 4,160
+[model.roi_heads.box_predictor]: 1,950
+```
