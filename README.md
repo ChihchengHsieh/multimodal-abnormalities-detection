@@ -283,7 +283,11 @@ model_setup = ModelSetup(
 Still overfitting
 
 ## Then we try apply two layers of dropout in `XAMITwoMLPHead` but using the same model_setup.
-## Further increase the L2 ().
+
+<img width="596" alt="image" src="https://user-images.githubusercontent.com/37566901/165358982-b2acba40-d8b2-4f05-8c2a-09e9019a3f06.png">
+start seeing the overfitting at around 60th epoch, the training decided to move on while the validation set still struggling around 0.25 AP. 
+
+## Further increase the L2 (weight_decay).
 
 
 
@@ -310,3 +314,5 @@ ModelSetup(
         use_mask=False,
     ),
 ```
+
+
