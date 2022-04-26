@@ -283,7 +283,7 @@ model_setup = ModelSetup(
 Still overfitting
 
 ## Then we try apply two layers of dropout in `XAMITwoMLPHead` but using the same model_setup.
-
+## Further increase the L2 ().
 
 
 
