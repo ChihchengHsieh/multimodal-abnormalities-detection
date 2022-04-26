@@ -232,6 +232,60 @@ ModelSetup(
     )
 ```
 
+### samll 
+
+```
+[model]: 732,281
+[model.backbone]: 701,520
+[model.rpn]: 3,595
+[model.roi_heads]: 27,166
+[model.roi_heads.box_head]: 26,176
+[model.roi_heads.box_head.fc6]: 25,120
+[model.roi_heads.box_head.fc7]: 1,056
+[model.roi_heads.box_predictor]: 990
+```
+
+### MobileNetV3 with samll batch size, according to [this work](https://papers.nips.cc/paper/2019/hash/dc6a70712a252123c40d2adba6a11d84-Abstract.html), the value of `lr/batch_size` should be biggere to reach a better generalization performance.
+
+```
+model_setup = ModelSetup(
+    name="ov_3",
+    use_clinical=False,
+    use_custom_model=True,
+    use_early_stop_model=True,
+    backbone="mobilenet_v3",  # [mobilenet_v3]
+    optimiser="sgd",
+    lr=1e-2,
+    pretrained=True,
+    dataset_mode="unified",
+    image_size=256,
+    weight_decay=1e-3,
+    record_training_performance=True,
+    using_fpn=False,
+    backbone_out_channels=16,  # shrink size test [32]
+    representation_size=32,  # shrink size test [128, 64]
+    # mask_hidden_layers=64,
+    use_mask=False,
+    batch_size=4,
+)
+
+[model]: 1,040,729
+[model.backbone]: 1,009,968
+[model.rpn]: 3,595
+[model.roi_heads]: 27,166
+[model.roi_heads.box_head]: 26,176
+[model.roi_heads.box_head.fc6]: 25,120
+[model.roi_heads.box_head.fc7]: 1,056
+[model.roi_heads.box_predictor]: 990
+```
+
+<img width="592" alt="image" src="https://user-images.githubusercontent.com/37566901/165334184-1a4f77bc-6f7f-4629-b6a3-258b0397b2a1.png">
+Still overfitting
+
+## Then we try apply two layers of dropout in `XAMITwoMLPHead` but using the same model_setup.
+
+
+
 
 ### This is pretty close to the regulation limit.
 
