@@ -287,7 +287,31 @@ Still overfitting
 <img width="596" alt="image" src="https://user-images.githubusercontent.com/37566901/165358982-b2acba40-d8b2-4f05-8c2a-09e9019a3f06.png">
 start seeing the overfitting at around 60th epoch, the training decided to move on while the validation set still struggling around 0.25 AP. 
 
-## Further increase the L2 (weight_decay).
+## Further increase the L2 (weight_decay=1e-1).
+so we want to improve till around 20th epoch, and freeze their weight so on.
+
+```
+model_setup = ModelSetup(
+    name="ov_3",
+    use_clinical=False,
+    use_custom_model=True,
+    use_early_stop_model=True,
+    backbone="mobilenet_v3",  # [mobilenet_v3]
+    optimiser="sgd",
+    lr=1e-3, # decrase lr cuz 1e-2 is not trainable.
+    pretrained=True,
+    dataset_mode="unified",
+    image_size=256,
+    weight_decay=1e-1,
+    record_training_performance=True,
+    using_fpn=False,
+    backbone_out_channels=16,  # shrink size test [32]
+    representation_size=32,  # shrink size test [128, 64]
+    # mask_hidden_layers=64,
+    use_mask=False,
+    batch_size=4,
+)
+```
 
 
 
