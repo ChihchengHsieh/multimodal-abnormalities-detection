@@ -312,8 +312,13 @@ model_setup = ModelSetup(
     batch_size=4,
 )
 ```
+
+
 ### With dropout=0.2 in box_head.
 
+<img width="400" alt="image" src="https://user-images.githubusercontent.com/37566901/165483874-b8fce143-f2de-411f-897f-93da96664e07.png">
+
+### With dropout=0.3 in box_head and lr_scheduler.
 <img width="398" alt="image" src="https://user-images.githubusercontent.com/37566901/165445268-14a727ef-751d-42e4-8638-38e9ea2b71ad.png">
 
 ### 
