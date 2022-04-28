@@ -314,14 +314,54 @@ model_setup = ModelSetup(
 ```
 
 
-### With dropout=0.2 in box_head.
+### With dropout=0.3 in box_head.
+<img width="398" alt="image" src="https://user-images.githubusercontent.com/37566901/165445268-14a727ef-751d-42e4-8638-38e9ea2b71ad.png">
+
+
+### With dropout=0.2 in box_head, StepLR.
 
 <img width="400" alt="image" src="https://user-images.githubusercontent.com/37566901/165483874-b8fce143-f2de-411f-897f-93da96664e07.png">
 
-### With dropout=0.3 in box_head and lr_scheduler.
-<img width="398" alt="image" src="https://user-images.githubusercontent.com/37566901/165445268-14a727ef-751d-42e4-8638-38e9ea2b71ad.png">
 
-### 
+### dropout=0.2, with StepLR.
+
+<img width="406" alt="image" src="https://user-images.githubusercontent.com/37566901/165579785-c8e47609-28eb-4654-a26f-6b1c331f8405.png">
+
+### dropout=0, with ReduceLROnPlateau.
+
+<img width="400" alt="image" src="https://user-images.githubusercontent.com/37566901/165593268-340525a2-5525-4b2d-a3ab-70967d30c8b9.png">
+
+### dropout=0, with ReduceLROnPlateau. patience = 5, factor = 0.5
+
+<img width="402" alt="image" src="https://user-images.githubusercontent.com/37566901/165620898-7946c6fd-242e-4180-96ff-3d80a02e5c58.png">
+
+### dropout=0, with ReduceLROnPlateau. patience = 3, factor = 0.5
+```
+val_ar_0_4523_ap_0_2463_test_ar_0_4995_ap_0_2929_epoch61_WithoutClincal_04-28-2022 07-36-46_ov_3
+```
+<img width="402" alt="image" src="https://user-images.githubusercontent.com/37566901/165635523-4fdb0be3-f8be-428c-9698-565bf334a1f2.png">
+
+### dropout=0.2, with ReduceLROnPlateau. patience = 2, factor = 0.5
+
+```
+val_ar_0_3721_ap_0_2119_test_ar_0_3481_ap_0_2607_epoch74_WithoutClincal_04-28-2022 09-59-40_ov_3
+```
+<img width="591" alt="image" src="https://user-images.githubusercontent.com/37566901/165653321-e359b8e1-c2b5-4dfd-9f2f-64b6dd637f52.png">
+
+
+### dropout=0.2, with ReduceLROnPlateau. patience = 3, factor = 0.5
+
+
+
+### dropout=0, with ReduceLROnPlateau. patience = 3, factor = 0.5
+
+### dropout=0, with ReduceLROnPlateau. factor = 0.9
+
+### dropout=0, with ReduceLROnPlateau, patience = 3.
+
+### dropout=0, with ReduceLROnPlateau, patience = 5.
+
+### dropout=0, with ReduceLROnPlateau, patience = 20.
 
 ### This is pretty close to the regulation limit.
 
