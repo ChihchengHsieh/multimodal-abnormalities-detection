@@ -351,7 +351,14 @@ val_ar_0_3721_ap_0_2119_test_ar_0_3481_ap_0_2607_epoch74_WithoutClincal_04-28-20
 
 ### dropout=0.2, with ReduceLROnPlateau. patience = 3, factor = 0.5
 
-### dropout=0, with ReduceLROnPlateau. factor=0.1, patience=2,
+### dropout=0, with ReduceLROnPlateau. factor=0.1, patience=3,
+
+```
+val_ar_0_5581_ap_0_3130_test_ar_0_5281_ap_0_3557_epoch100_WithoutClincal_04-28-2022 13-58-50_ov_3
+```
+<img width="593" alt="image" src="https://user-images.githubusercontent.com/37566901/165677253-a28e2754-1613-4819-902f-64a774aad205.png">
+
+
 
 ### dropout=0, with ReduceLROnPlateau. patience = 3, factor = 0.5
 
