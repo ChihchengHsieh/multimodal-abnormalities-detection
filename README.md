@@ -351,7 +351,7 @@ val_ar_0_3721_ap_0_2119_test_ar_0_3481_ap_0_2607_epoch74_WithoutClincal_04-28-20
 
 ### dropout=0.2, with ReduceLROnPlateau. patience = 3, factor = 0.5
 
-
+### dropout=0, with ReduceLROnPlateau. factor=0.1, patience=2,
 
 ### dropout=0, with ReduceLROnPlateau. patience = 3, factor = 0.5
 
