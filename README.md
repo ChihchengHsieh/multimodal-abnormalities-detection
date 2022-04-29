@@ -354,7 +354,7 @@ val_ar_0_3721_ap_0_2119_test_ar_0_3481_ap_0_2607_epoch74_WithoutClincal_04-28-20
 
 #### Baseline and comparisons
 
-### dropout=0, with ReduceLROnPlateau, factor=0.1, patience=3 (this is the baseline with pretty decent result) (0.3557)
+### dropout=0, with ReduceLROnPlateau, factor=0.1, patience=3 (this is the baseline with pretty decent result) (v=0.3130, t=0.3557)
 
 ```
 # ModelSetup(
@@ -398,7 +398,7 @@ val_ar_0_5581_ap_0_3130_test_ar_0_5281_ap_0_3557_epoch100_WithoutClincal_04-28-2
 ```
 <img width="593" alt="image" src="https://user-images.githubusercontent.com/37566901/165677253-a28e2754-1613-4819-902f-64a774aad205.png">
 
-### dropout=0, with MultiStepLR, multiStepLR_milestones=[30, 50, 70, 90] (0.3029)
+### dropout=0, with MultiStepLR, multiStepLR_milestones=[30, 50, 70, 90] (v=0.2944, t=0.3029)
 
 ```
 ========================================For Training [ov_1]========================================
@@ -424,7 +424,7 @@ Mask Hidden Layers 256
 ```
 <img width="599" alt="image" src="https://user-images.githubusercontent.com/37566901/165864330-725ac9d4-bf37-4842-a6fd-6ef37d823ff2.png">
 
-### dropout=0, with ReduceLROnPlateau, factor=0.1, patience=3, slightly larger model. (0_2971)
+### dropout=0, with ReduceLROnPlateau, factor=0.1, patience=3, slightly larger model. (v=0.2996, t=0.2971)
 
 ```
 ========================================For Training [ov_2]========================================
@@ -476,7 +476,7 @@ Mask Hidden Layers 256
 <img width="604" alt="image" src="https://user-images.githubusercontent.com/37566901/165864744-76f2758b-99e0-41f4-b087-0babdde5d77a.png">
 
 
-### dropout=0, with ReduceLROnPlateau, factor=0.5, patience=2 (0.3381)
+### dropout=0, with ReduceLROnPlateau, factor=0.5, patience=2 (v=0.3257, t=0.3381)
 ```
 ========================================For Training [ov_4]========================================
 ModelSetup(use_clinical=False, use_custom_model=True, use_early_stop_model=True, name='ov_4', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, using_fpn=False, representation_size=32, mask_hidden_layers=256, use_mask=False, batch_size=4, box_head_dropout_rate=0, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.5, reduceLROnPlateau_patience=2, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1)
@@ -529,7 +529,7 @@ Mask Hidden Layers 256
 <img width="601" alt="image" src="https://user-images.githubusercontent.com/37566901/165916489-c5777948-def8-4fe8-98dc-78627d5f9c4f.png">
 
 
-### dropout=0, with ReduceLROnPlateau, factor=0.1, patience=2 (0.3096)
+### dropout=0, with ReduceLROnPlateau, factor=0.1, patience=2 (v=0.3210, t=0.3096)
 ```
 ========================================For Training [ov_6]========================================
 ModelSetup(use_clinical=False, use_custom_model=True, use_early_stop_model=True, name='ov_6', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, using_fpn=False, representation_size=32, mask_hidden_layers=256, use_mask=False, batch_size=4, box_head_dropout_rate=0, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=2, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1)
@@ -557,7 +557,7 @@ Mask Hidden Layers 256
 <img width="601" alt="image" src="https://user-images.githubusercontent.com/37566901/165916522-f24c2d39-5517-4cca-b777-43af40c91c33.png">
 
 
-### dropout=0.2, with ReduceLROnPlateau, factor=0.1, patience=3 (0.3200)
+### dropout=0.2, with ReduceLROnPlateau, factor=0.1, patience=3 (v=0.2702, t=0.3200)
 
 ```
 ========================================For Training [ov_3]========================================
