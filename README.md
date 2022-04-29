@@ -394,7 +394,15 @@ val_ar_0_3721_ap_0_2119_test_ar_0_3481_ap_0_2607_epoch74_WithoutClincal_04-28-20
 [model.roi_heads.box_head.fc7]: 1,056
 [model.roi_heads.box_predictor]: 990
 
-val_ar_0_5581_ap_0_3130_test_ar_0_5281_ap_0_3557_epoch100_WithoutClincal_04-28-2022 13-58-50_ov_3
+========================================For Training [ov_3]========================================
+ModelSetup(use_clinical=False, use_custom_model=True, use_early_stop_model=True, name='ov_3', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, using_fpn=False, representation_size=32, mask_hidden_layers=256, use_mask=False, batch_size=4, box_head_dropout_rate=0, warmup_epochs=0)
+===================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_6132_ap_0_3597_test_ar_0_5281_ap_0_3714_epoch26_WithoutClincal_04-28-2022 12-05-57_ov_3]
+Best AR validation model has been saved to: [val_ar_0_7046_ap_0_3173_test_ar_0_6297_ap_0_3477_epoch19_WithoutClincal_04-28-2022 11-55-16_ov_3]
+The final model has been saved to: [val_ar_0_5581_ap_0_3130_test_ar_0_5281_ap_0_3557_epoch100_WithoutClincal_04-28-2022 13-58-50_ov_3]
+
+===================================================================================================
 ```
 <img width="593" alt="image" src="https://user-images.githubusercontent.com/37566901/165677253-a28e2754-1613-4819-902f-64a774aad205.png">
 
