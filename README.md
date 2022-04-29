@@ -502,7 +502,7 @@ Mask Hidden Layers 256
 <img width="599" alt="image" src="https://user-images.githubusercontent.com/37566901/165864705-ec13f018-46b4-4c8a-ac74-b59fa7614279.png">
 
 
-### dropout=0, with MultiStepLR, multiStepLR_milestones=[10 , 30, 50, 70, 90], multiStepLR_gamma=0.1 (0.2877)
+### dropout=0, with MultiStepLR, multiStepLR_milestones=[10 , 30, 50, 70, 90], multiStepLR_gamma=0.1 (v=0.3469, t=0.2877)
 
 ```
 ========================================For Training [ov_5]========================================
