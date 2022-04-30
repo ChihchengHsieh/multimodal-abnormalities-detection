@@ -594,7 +594,7 @@ Mask Hidden Layers 256
 
 
 
-### 1 baseline, clinical
+### 1 baseline, clinical (v=0.2751, t=0.3412)
 ```
 ========================================For Training [mobilenet_v3_lr_schedule]========================================
 ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='mobilenet_v3_lr_schedule', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=3, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4)
@@ -621,7 +621,7 @@ Using pretrained backbone. mobilenet_v3
 <img width="607" alt="image" src="https://user-images.githubusercontent.com/37566901/166100120-fa58f2f0-4054-4993-a2d7-e59f6d1e2170.png">
 
 
-### 2 MultiStepLR, clinical
+### 2 MultiStepLR, clinical (v=0.4273, t=0.4850)
 ```
 ========================================For Training [ov_1]========================================
 ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='ov_1', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler='MultiStepLR', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=3, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4)
@@ -648,7 +648,7 @@ Using pretrained backbone. mobilenet_v3
 <img width="595" alt="image" src="https://user-images.githubusercontent.com/37566901/166100129-567b7d27-5bb9-4a21-9907-4dafcd3227b2.png">
 
 
-### 3 larger, clinical
+### 3 larger, clinical (v=0.3586, t=0.3666)
 
 ```
 ========================================For Training [ov_2]========================================
@@ -676,7 +676,7 @@ Using pretrained backbone. mobilenet_v3
 
 <img width="609" alt="image" src="https://user-images.githubusercontent.com/37566901/166100139-37499643-957f-4d36-87b0-7b7866d01e97.png">
 
-### 4 doprout = 0.2, clinincal
+### 4 doprout = 0.2, clinincal (v=0.2332, t=0.2851)
 
 ```
 ========================================For Training [ov_3]========================================
@@ -704,7 +704,7 @@ Using pretrained backbone. mobilenet_v3
 <img width="605" alt="image" src="https://user-images.githubusercontent.com/37566901/166105365-6fc4b1ab-c37b-4756-9516-9a7d950ac4b4.png">
 
 
-### dropout=0 clinical baseline, no lr_scheduler.
+### dropout=0 clinical baseline, no lr_scheduler. (v=0.3854, t=0.4183)
 
 ```
 ========================================For Training [mobilenet_v3_no_pretrained_no_lr_scheduler]========================================
