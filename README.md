@@ -676,6 +676,34 @@ Using pretrained backbone. mobilenet_v3
 
 <img width="609" alt="image" src="https://user-images.githubusercontent.com/37566901/166100139-37499643-957f-4d36-87b0-7b7866d01e97.png">
 
+### 4 doprout = 0.2, clinincal
+
+```
+========================================For Training [ov_3]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='ov_3', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=3, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0.2, clinical_conv_dropout_rate=0.2, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0.2, box_head_dropout_rate=0.2, fuse_depth=4)
+===================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_8248_ap_0_3249_test_ar_0_7416_ap_0_2680_epoch1_WithClincal_04-30-2022 19-37-05_ov_3]
+Best AR validation model has been saved to: [val_ar_0_8248_ap_0_3249_test_ar_0_7416_ap_0_2680_epoch1_WithClincal_04-30-2022 19-37-05_ov_3]
+The final model has been saved to: [val_ar_0_5447_ap_0_2332_test_ar_0_6017_ap_0_2851_epoch100_WithClincal_04-30-2022 22-15-09_ov_3]
+
+===================================================================================================
+Load custom model
+Using pretrained backbone. mobilenet_v3
+[model]: 1,223,303
+[model.backbone]: 1,009,968
+[model.rpn]: 3,595
+[model.roi_heads]: 27,166
+[model.roi_heads.box_head]: 26,176
+[model.roi_heads.box_head.fc6]: 25,120
+[model.roi_heads.box_head.fc7]: 1,056
+[model.roi_heads.box_predictor]: 990
+[model.clinical_convs]: 41,904
+[model.fuse_convs]: 32,592
+```
+<img width="605" alt="image" src="https://user-images.githubusercontent.com/37566901/166105365-6fc4b1ab-c37b-4756-9516-9a7d950ac4b4.png">
+
+
 
 ### This is pretty close to the regulation limit.
 
