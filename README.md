@@ -593,6 +593,90 @@ Mask Hidden Layers 256
 <img width="598" alt="image" src="https://user-images.githubusercontent.com/37566901/165917316-48aaa1d9-4791-440b-9962-67d8ba3d852c.png">
 
 
+
+### 1 baseline, clinical
+```
+========================================For Training [mobilenet_v3_lr_schedule]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='mobilenet_v3_lr_schedule', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=3, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4)
+=======================================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_8819_ap_0_3625_test_ar_0_7579_ap_0_2484_epoch1_WithClincal_04-30-2022 09-33-40_mobilenet_v3_lr_schedule]
+Best AR validation model has been saved to: [val_ar_0_8819_ap_0_3625_test_ar_0_7579_ap_0_2484_epoch1_WithClincal_04-30-2022 09-33-40_mobilenet_v3_lr_schedule]
+The final model has been saved to: [val_ar_0_6258_ap_0_2751_test_ar_0_6477_ap_0_3412_epoch100_WithClincal_04-30-2022 12-14-12_mobilenet_v3_lr_schedule]
+
+=======================================================================================================================
+Load custom model
+Using pretrained backbone. mobilenet_v3
+[model]: 1,223,303
+[model.backbone]: 1,009,968
+[model.rpn]: 3,595
+[model.roi_heads]: 27,166
+[model.roi_heads.box_head]: 26,176
+[model.roi_heads.box_head.fc6]: 25,120
+[model.roi_heads.box_head.fc7]: 1,056
+[model.roi_heads.box_predictor]: 990
+[model.clinical_convs]: 41,904
+[model.fuse_convs]: 32,592
+```
+<img width="607" alt="image" src="https://user-images.githubusercontent.com/37566901/166100120-fa58f2f0-4054-4993-a2d7-e59f6d1e2170.png">
+
+
+### 2 MultiStepLR, clinical
+```
+========================================For Training [ov_1]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='ov_1', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler='MultiStepLR', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=3, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4)
+===================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_8788_ap_0_6074_test_ar_0_8079_ap_0_5572_epoch13_WithClincal_04-30-2022 12-38-30_ov_1]
+Best AR validation model has been saved to: [val_ar_0_8788_ap_0_6074_test_ar_0_8079_ap_0_5572_epoch13_WithClincal_04-30-2022 12-38-30_ov_1]
+The final model has been saved to: [val_ar_0_7270_ap_0_4273_test_ar_0_7333_ap_0_4850_epoch100_WithClincal_04-30-2022 14-59-10_ov_1]
+
+===================================================================================================
+Load custom model
+Using pretrained backbone. mobilenet_v3
+[model]: 1,223,303
+[model.backbone]: 1,009,968
+[model.rpn]: 3,595
+[model.roi_heads]: 27,166
+[model.roi_heads.box_head]: 26,176
+[model.roi_heads.box_head.fc6]: 25,120
+[model.roi_heads.box_head.fc7]: 1,056
+[model.roi_heads.box_predictor]: 990
+[model.clinical_convs]: 41,904
+[model.fuse_convs]: 32,592
+```
+<img width="595" alt="image" src="https://user-images.githubusercontent.com/37566901/166100129-567b7d27-5bb9-4a21-9907-4dafcd3227b2.png">
+
+
+### 3 larger, clinical
+
+```
+========================================For Training [ov_2]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='ov_2', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=32, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=3, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=64, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4)
+===================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_7766_ap_0_4167_test_ar_0_7418_ap_0_3803_epoch2_WithClincal_04-30-2022 15-05-24_ov_2]
+Best AR validation model has been saved to: [val_ar_0_7994_ap_0_3201_test_ar_0_7666_ap_0_2632_epoch1_WithClincal_04-30-2022 15-03-37_ov_2]
+The final model has been saved to: [val_ar_0_7215_ap_0_3586_test_ar_0_6976_ap_0_3666_epoch100_WithClincal_04-30-2022 17-43-02_ov_2]
+
+===================================================================================================
+Load custom model
+Using pretrained backbone. mobilenet_v3
+[model]: 1,412,279
+[model.backbone]: 1,092,928
+[model.rpn]: 11,723
+[model.roi_heads]: 106,526
+[model.roi_heads.box_head]: 104,576
+[model.roi_heads.box_head.fc6]: 100,416
+[model.roi_heads.box_head.fc7]: 4,160
+[model.roi_heads.box_predictor]: 1,950
+[model.clinical_convs]: 46,560
+[model.fuse_convs]: 46,464
+```
+
+<img width="609" alt="image" src="https://user-images.githubusercontent.com/37566901/166100139-37499643-957f-4d36-87b0-7b7866d01e97.png">
+
+
 ### This is pretty close to the regulation limit.
 
 ```
