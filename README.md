@@ -350,11 +350,9 @@ val_ar_0_3721_ap_0_2119_test_ar_0_3481_ap_0_2607_epoch74_WithoutClincal_04-28-20
 
 
 
+# Model without clinical
 
-
-#### Baseline and comparisons
-
-### dropout=0, with ReduceLROnPlateau, factor=0.1, patience=3 (this is the baseline with pretty decent result) (v=0.3130, t=0.3557)
+### dropout=0, with ReduceLROnPlateau, factor=0.1, patience=3 (this is the baseline with pretty decent result) (v=0.3130, t=0.3557, best_v=0.3597, best_t=0.3714)
 
 ```
 # ModelSetup(
@@ -406,7 +404,7 @@ The final model has been saved to: [val_ar_0_5581_ap_0_3130_test_ar_0_5281_ap_0_
 ```
 <img width="593" alt="image" src="https://user-images.githubusercontent.com/37566901/165677253-a28e2754-1613-4819-902f-64a774aad205.png">
 
-### dropout=0, with MultiStepLR, multiStepLR_milestones=[30, 50, 70, 90] (v=0.2944, t=0.3029)
+### dropout=0, with MultiStepLR, multiStepLR_milestones=[30, 50, 70, 90] (v=0.2944, t=0.3029, best_v=0.3713, best_t=0.2908)
 
 ```
 ========================================For Training [ov_1]========================================
@@ -432,7 +430,7 @@ Mask Hidden Layers 256
 ```
 <img width="599" alt="image" src="https://user-images.githubusercontent.com/37566901/165864330-725ac9d4-bf37-4842-a6fd-6ef37d823ff2.png">
 
-### dropout=0, with ReduceLROnPlateau, factor=0.1, patience=3, slightly larger model. (v=0.2996, t=0.2971)
+### dropout=0, with ReduceLROnPlateau, factor=0.1, patience=3, slightly larger model. (v=0.2996, t=0.2971, best_v=0.3464, best_t=0.3487)
 
 ```
 ========================================For Training [ov_2]========================================
@@ -458,7 +456,7 @@ Mask Hidden Layers 256
 ```
 <img width="612" alt="image" src="https://user-images.githubusercontent.com/37566901/165864493-4b461959-9adc-4548-9200-577b60b798eb.png">
 
-### dropout=0.2, with ReduceLROnPlateau, factor=0.1, patience=3 (0.751) (it should have some warmup epochs that I forgot to set.)
+### dropout=0.2, with ReduceLROnPlateau, factor=0.1, patience=3 (v=0.0645, t=0.0751, best_v=0.0698, best_t=0.0830) (it should have some warmup epochs that I forgot to set.)
 ```
 ========================================For Training [ov_3]========================================
 ModelSetup(use_clinical=False, use_custom_model=True, use_early_stop_model=True, name='ov_3', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, using_fpn=False, representation_size=32, mask_hidden_layers=256, use_mask=False, batch_size=4, box_head_dropout_rate=0.2, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=3, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1)
@@ -484,7 +482,7 @@ Mask Hidden Layers 256
 <img width="604" alt="image" src="https://user-images.githubusercontent.com/37566901/165864744-76f2758b-99e0-41f4-b087-0babdde5d77a.png">
 
 
-### dropout=0, with ReduceLROnPlateau, factor=0.5, patience=2 (v=0.3257, t=0.3381)
+### dropout=0, with ReduceLROnPlateau, factor=0.5, patience=2 (v=0.3257, t=0.3381, best_v=0.3580, best_t=0.2964)
 ```
 ========================================For Training [ov_4]========================================
 ModelSetup(use_clinical=False, use_custom_model=True, use_early_stop_model=True, name='ov_4', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, using_fpn=False, representation_size=32, mask_hidden_layers=256, use_mask=False, batch_size=4, box_head_dropout_rate=0, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.5, reduceLROnPlateau_patience=2, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1)
@@ -510,7 +508,7 @@ Mask Hidden Layers 256
 <img width="599" alt="image" src="https://user-images.githubusercontent.com/37566901/165864705-ec13f018-46b4-4c8a-ac74-b59fa7614279.png">
 
 
-### dropout=0, with MultiStepLR, multiStepLR_milestones=[10 , 30, 50, 70, 90], multiStepLR_gamma=0.1 (v=0.3469, t=0.2877)
+### dropout=0, with MultiStepLR, multiStepLR_milestones=[10 , 30, 50, 70, 90], multiStepLR_gamma=0.1 (v=0.3469, t=0.2877, best_v=0.3696, best_t=0.3018)
 
 ```
 ========================================For Training [ov_5]========================================
@@ -537,7 +535,7 @@ Mask Hidden Layers 256
 <img width="601" alt="image" src="https://user-images.githubusercontent.com/37566901/165916489-c5777948-def8-4fe8-98dc-78627d5f9c4f.png">
 
 
-### dropout=0, with ReduceLROnPlateau, factor=0.1, patience=2 (v=0.3210, t=0.3096)
+### dropout=0, with ReduceLROnPlateau, factor=0.1, patience=2 (v=0.3210, t=0.3096, best_v=0.3810, best_t=0.3387)
 ```
 ========================================For Training [ov_6]========================================
 ModelSetup(use_clinical=False, use_custom_model=True, use_early_stop_model=True, name='ov_6', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, using_fpn=False, representation_size=32, mask_hidden_layers=256, use_mask=False, batch_size=4, box_head_dropout_rate=0, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=2, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1)
@@ -565,7 +563,7 @@ Mask Hidden Layers 256
 <img width="601" alt="image" src="https://user-images.githubusercontent.com/37566901/165916522-f24c2d39-5517-4cca-b777-43af40c91c33.png">
 
 
-### dropout=0.2, with ReduceLROnPlateau, factor=0.1, patience=3 (v=0.2702, t=0.3200)
+### dropout=0.2, with ReduceLROnPlateau, factor=0.1, patience=3 (v=0.2702, t=0.3200, best_v=0.3149, best_t=0.2506)
 
 ```
 ========================================For Training [ov_3]========================================
@@ -592,9 +590,36 @@ Mask Hidden Layers 256
 
 <img width="598" alt="image" src="https://user-images.githubusercontent.com/37566901/165917316-48aaa1d9-4791-440b-9962-67d8ba3d852c.png">
 
+### baseline no pretrained, no lr_scheduler, no clinical (v=0.1380, t=0.1039, best_v=0.2378, best_t=0.1999)
 
+```
+========================================For Training [ov_14]========================================
+ModelSetup(use_clinical=False, use_custom_model=True, use_early_stop_model=True, name='ov_14', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=False, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler=None, reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=3, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4)
+====================================================================================================
 
-### 1 baseline, clinical (v=0.2751, t=0.3412)
+Best AP validation model has been saved to: [val_ar_0_5791_ap_0_2378_test_ar_0_4083_ap_0_1999_epoch35_WithoutClincal_05-01-2022 21-00-29_ov_14]
+Best AR validation model has been saved to: [val_ar_0_5791_ap_0_2378_test_ar_0_4083_ap_0_1999_epoch35_WithoutClincal_05-01-2022 21-00-29_ov_14]
+The final model has been saved to: [val_ar_0_2489_ap_0_1380_test_ar_0_2617_ap_0_1039_epoch100_WithoutClincal_05-01-2022 22-39-43_ov_14]
+
+====================================================================================================
+Load custom model
+Not using pretrained backbone.
+[model]: 1,040,729
+[model.backbone]: 1,009,968
+[model.rpn]: 3,595
+[model.roi_heads]: 27,166
+[model.roi_heads.box_head]: 26,176
+[model.roi_heads.box_head.fc6]: 25,120
+[model.roi_heads.box_head.fc7]: 1,056
+[model.roi_heads.box_predictor]: 990
+```
+
+<img width="592" alt="image" src="https://user-images.githubusercontent.com/37566901/166155821-92ac1245-0ee4-47e7-bb4b-944bfbbaad71.png">
+<img width="615" alt="image" src="https://user-images.githubusercontent.com/37566901/166155824-bdafe990-c8f2-4afa-8728-2f746ff52da2.png">
+
+# Model with clinical
+
+### baseline, clinical (v=0.2751, t=0.3412, best_v=0.3625, best_t=0.2484)
 ```
 ========================================For Training [mobilenet_v3_lr_schedule]========================================
 ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='mobilenet_v3_lr_schedule', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=3, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4)
@@ -621,7 +646,7 @@ Using pretrained backbone. mobilenet_v3
 <img width="607" alt="image" src="https://user-images.githubusercontent.com/37566901/166100120-fa58f2f0-4054-4993-a2d7-e59f6d1e2170.png">
 
 
-### 2 MultiStepLR, clinical (v=0.4273, t=0.4850)
+### MultiStepLR, clinical (v=0.4273, t=0.4850, best_v=0.6074, best_t=0.5572)
 ```
 ========================================For Training [ov_1]========================================
 ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='ov_1', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler='MultiStepLR', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=3, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4)
@@ -648,7 +673,7 @@ Using pretrained backbone. mobilenet_v3
 <img width="595" alt="image" src="https://user-images.githubusercontent.com/37566901/166100129-567b7d27-5bb9-4a21-9907-4dafcd3227b2.png">
 
 
-### 3 larger, clinical (v=0.3586, t=0.3666)
+### larger, clinical (v=0.3586, t=0.3666, best_v=0.4167, best_t=0.3803)
 
 ```
 ========================================For Training [ov_2]========================================
@@ -676,7 +701,7 @@ Using pretrained backbone. mobilenet_v3
 
 <img width="609" alt="image" src="https://user-images.githubusercontent.com/37566901/166100139-37499643-957f-4d36-87b0-7b7866d01e97.png">
 
-### 4 doprout = 0.2, clinincal (v=0.2332, t=0.2851)
+### 4 doprout = 0.2, clinincal (v=0.2332, t=0.2851, best_v=0.3249, best_t=0.2680)
 
 ```
 ========================================For Training [ov_3]========================================
@@ -704,7 +729,7 @@ Using pretrained backbone. mobilenet_v3
 <img width="605" alt="image" src="https://user-images.githubusercontent.com/37566901/166105365-6fc4b1ab-c37b-4756-9516-9a7d950ac4b4.png">
 
 
-### dropout=0 clinical baseline, no lr_scheduler. (v=0.3854, t=0.4183)
+### dropout=0 clinical baseline, no lr_scheduler. (v=0.3854, t=0.4183,, best_v=0.5869, best_t=0.5425)
 
 ```
 ========================================For Training [mobilenet_v3_no_pretrained_no_lr_scheduler]========================================
@@ -731,7 +756,7 @@ Using pretrained backbone. mobilenet_v3
 ```
 <img width="396" alt="image" src="https://user-images.githubusercontent.com/37566901/166115022-5d545d84-7646-4128-b365-dbe4107c8515.png">
 
-### lr=1e-5, clinical
+### lr=1e-5, clinical (v= 0.2693, t=0.2759, best_v=0.3427, best_t=0.2859)
 
 ```
 ========================================For Training [mobilenet_v3_no_pretrained_no_lr_scheduler]========================================
@@ -760,7 +785,7 @@ Using pretrained backbone. mobilenet_v3
 <img width="400" alt="image" src="https://user-images.githubusercontent.com/37566901/166121337-eb823b0d-3b1e-4c1a-a7fd-f2d9a512a670.png">
 
 
-### clinical, ReduceLROnPlateau, large paitence = 10, factor = 0.1, lr=1e-1 (v=0.3431, t=0.3360)
+### clinical, ReduceLROnPlateau, large paitence = 10, factor = 0.1, lr=1e-1 (v=0.3431, t=0.3360, best_v=0.3944, best_t=0.3769)
 
 ```
 ========================================For Training [ov_10]========================================
@@ -788,7 +813,7 @@ Using pretrained backbone. mobilenet_v3
 <img width="601" alt="image" src="https://user-images.githubusercontent.com/37566901/166155516-54f97abf-8f58-4394-a8e7-ffe2ec2a922e.png">
 <img width="622" alt="image" src="https://user-images.githubusercontent.com/37566901/166155519-5c47c2f4-5805-4db5-bd20-ff82fafdd12c.png">
 
-### larger lr = 0.1 (v=0.0544, t=0.0708, best_v=0.4028, best_t=0.3968) 
+### larger lr = 0.1 (v=0.0544, t=0.0708, best_v=0.4028, best_t=0.3968, best_v=0.4028, best_t=0.3968) 
 ```
 ========================================For Training [ov_11]========================================
 ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='ov_11', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.1, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler=None, reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=3, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4)
@@ -871,32 +896,7 @@ Using pretrained backbone. mobilenet_v3
 <img width="600" alt="image" src="https://user-images.githubusercontent.com/37566901/166155731-7370ad75-02c7-41e0-a729-9973cfadc370.png">
 <img width="624" alt="image" src="https://user-images.githubusercontent.com/37566901/166155736-f4249b0c-bf1b-4904-a130-a5d4cd7d9b7d.png">
 
-# baseline no pretrained, no lr_scheduler, no clinical (v=0.1380, t=0.1039, best_v=0.2378, best_t=0.1999)
 
-```
-========================================For Training [ov_14]========================================
-ModelSetup(use_clinical=False, use_custom_model=True, use_early_stop_model=True, name='ov_14', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=False, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler=None, reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=3, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4)
-====================================================================================================
-
-Best AP validation model has been saved to: [val_ar_0_5791_ap_0_2378_test_ar_0_4083_ap_0_1999_epoch35_WithoutClincal_05-01-2022 21-00-29_ov_14]
-Best AR validation model has been saved to: [val_ar_0_5791_ap_0_2378_test_ar_0_4083_ap_0_1999_epoch35_WithoutClincal_05-01-2022 21-00-29_ov_14]
-The final model has been saved to: [val_ar_0_2489_ap_0_1380_test_ar_0_2617_ap_0_1039_epoch100_WithoutClincal_05-01-2022 22-39-43_ov_14]
-
-====================================================================================================
-Load custom model
-Not using pretrained backbone.
-[model]: 1,040,729
-[model.backbone]: 1,009,968
-[model.rpn]: 3,595
-[model.roi_heads]: 27,166
-[model.roi_heads.box_head]: 26,176
-[model.roi_heads.box_head.fc6]: 25,120
-[model.roi_heads.box_head.fc7]: 1,056
-[model.roi_heads.box_predictor]: 990
-```
-
-<img width="592" alt="image" src="https://user-images.githubusercontent.com/37566901/166155821-92ac1245-0ee4-47e7-bb4b-944bfbbaad71.png">
-<img width="615" alt="image" src="https://user-images.githubusercontent.com/37566901/166155824-bdafe990-c8f2-4afa-8728-2f746ff52da2.png">
 
 
 ### dropout=0.2, no lr_scheduler (v=0.3952, t=0.4149, best_v=0.4468, best_t=0.4720)
