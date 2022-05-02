@@ -956,6 +956,35 @@ Using pretrained backbone. mobilenet_v3
 <img width="593" alt="image" src="https://user-images.githubusercontent.com/37566901/166170118-a9066178-d0c6-4e50-a168-68398b6655bc.png">
 <img width="607" alt="image" src="https://user-images.githubusercontent.com/37566901/166170126-a0781844-b031-4bc0-a8ba-72f802490084.png">
 
+### Determined comparison.
+
+## With clinical 
+
+## Without clinical (v=0.2754, t=0.2605, best_v=0.2981, best_t=0.2716)
+```
+========================================For Training [without_clinical]========================================
+ModelSetup(use_clinical=False, use_custom_model=True, use_early_stop_model=True, name='without_clinical', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=10, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4)
+===============================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_5377_ap_0_2981_test_ar_0_4515_ap_0_2716_epoch30_WithoutClincal_05-02-2022 12-32-56_without_clinical]
+Best AR validation model has been saved to: [val_ar_0_6803_ap_0_2134_test_ar_0_5547_ap_0_2393_epoch21_WithoutClincal_05-02-2022 12-19-06_without_clinical]
+The final model has been saved to: [val_ar_0_5053_ap_0_2754_test_ar_0_4265_ap_0_2605_epoch100_WithoutClincal_05-02-2022 14-17-08_without_clinical]
+
+===============================================================================================================
+Load custom model
+Using pretrained backbone. mobilenet_v3
+[model]: 1,040,729
+[model.backbone]: 1,009,968
+[model.rpn]: 3,595
+[model.roi_heads]: 27,166
+[model.roi_heads.box_head]: 26,176
+[model.roi_heads.box_head.fc6]: 25,120
+[model.roi_heads.box_head.fc7]: 1,056
+```
+<img width="600" alt="image" src="https://user-images.githubusercontent.com/37566901/166185314-d8daf145-06ec-48e0-8ea6-1a97021b8598.png">
+<img width="614" alt="image" src="https://user-images.githubusercontent.com/37566901/166185322-102a9ce8-bd43-471c-b20b-e1d6958e177b.png">
+
+
 ### This is pretty close to the regulation limit.
 
 ```
