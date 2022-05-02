@@ -959,6 +959,32 @@ Using pretrained backbone. mobilenet_v3
 ### Determined comparison.
 
 ## With clinical 
+```
+========================================For Training [with_clinical]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='with_clinical', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=10, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4)
+============================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_7430_ap_0_5567_test_ar_0_7974_ap_0_5392_epoch29_WithClincal_05-02-2022 17-07-17_with_clinical]
+Best AR validation model has been saved to: [val_ar_0_8595_ap_0_4564_test_ar_0_7599_ap_0_4436_epoch13_WithClincal_05-02-2022 16-41-36_with_clinical]
+The final model has been saved to: [val_ar_0_7269_ap_0_4601_test_ar_0_6710_ap_0_4286_epoch100_WithClincal_05-02-2022 19-03-30_with_clinical]
+
+============================================================================================================
+Load custom model
+Using pretrained backbone. mobilenet_v3
+[model]: 1,223,303
+[model.backbone]: 1,009,968
+[model.rpn]: 3,595
+[model.roi_heads]: 27,166
+[model.roi_heads.box_head]: 26,176
+[model.roi_heads.box_head.fc6]: 25,120
+[model.roi_heads.box_head.fc7]: 1,056
+[model.roi_heads.box_predictor]: 990
+[model.clinical_convs]: 41,904
+[model.fuse_convs]: 32,592
+```
+<img width="595" alt="image" src="https://user-images.githubusercontent.com/37566901/166212138-5199b769-0291-4716-a8ee-6878d98ec6f6.png">
+<img width="604" alt="image" src="https://user-images.githubusercontent.com/37566901/166212174-337ff63f-909c-4d01-94c2-1cb4b4fdb79f.png">
+
 
 ## Without clinical (v=0.2754, t=0.2605, best_v=0.2981, best_t=0.2716)
 ```
