@@ -15,7 +15,7 @@ def clean_memory_get_device()-> str:
 
 def reproducibility(seed: int=0):
     torch.manual_seed(seed)
-    random.seed(0)
-    np.random.seed(0)
+    random.seed(seed)
+    np.random.seed(seed)
     torch.backends.cudnn.benchmark = False
     torch.use_deterministic_algorithms(True)

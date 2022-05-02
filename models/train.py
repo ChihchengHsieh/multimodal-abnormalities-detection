@@ -49,8 +49,13 @@ class TrainedModels(Enum):
 class TrainingInfo:
     def __init__(self, model_setup: ModelSetup):
         self.train_data = []
-        self.val_evaluators = []
-        self.train_evaluators = []
+        self.val_data= []
+
+        self.train_ap_ars = []
+        self.val_ap_ars = []
+
+        self.last_val_evaluator  = None
+        self.last_train_evaluator = None
         self.test_evaluator = None
         self.best_val_ar = -1
         self.best_val_ap = -1

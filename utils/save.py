@@ -1,5 +1,5 @@
 import os
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 import torch
 import pickle
 
@@ -13,10 +13,10 @@ import torch.nn as nn
 import utils.print as print_f
 from models.load import TrainingInfo
 from torch.optim.optimizer import Optimizer
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 
 
-def get_train_data(loger: MetricLogger) -> Dict[str, float]:
+def get_data_from_metric_logger(loger: MetricLogger) -> Dict[str, float]:
     train_data = {}
     for k in loger.meters.keys():
         train_data[k] = loger.meters[k].avg
@@ -87,15 +87,25 @@ def check_best(
     model: nn.Module,
     optim: Optimizer,
     test_dataloader: DataLoader,
+    test_coco: Dataset,
+    iou_types: List[str],
     device: str,
+    score_thres: Dict[str, float]=None,
 ) -> Tuple[float, float, TrainingInfo]:
-    val_ar, val_ap = get_ar_ap(train_info.val_evaluators[-1])
+
+    val_ar, val_ap = get_ar_ap(train_info.last_val_evaluator)
 
     ## Targeting the model with higher Average Recall and Average Precision.
     if val_ar > train_info.best_val_ar or val_ap > train_info.best_val_ap:
 
-        train_info.test_evaluator = xami_evaluate(
-            model, test_dataloader, device=device, params_dict=eval_params_dict
+        train_info.test_evaluator, test_logger = xami_evaluate(
+            model=model,
+            data_loader=test_dataloader,
+            device=device,
+            params_dict=eval_params_dict,
+            coco=test_coco,
+            iou_types=iou_types,
+            score_thres=score_thres,
         )
 
         test_ar, test_ap = get_ar_ap(train_info.test_evaluator)
@@ -143,6 +153,9 @@ def end_train(
     last_val_ap: float,
     test_dataloader: DataLoader,
     device: str,
+    test_coco:Dataset,
+    iou_types: List[str],
+    score_thres:Dict[str, float] =None,
 ) -> TrainingInfo:
     train_info.end_t = datetime.now()
     sec_took = (train_info.end_t - train_info.start_t).seconds
@@ -160,8 +173,14 @@ def end_train(
             f"Best AR validation model has been saved to: [{train_info.best_ar_val_model_path}]"
         )
 
-    train_info.test_evaluator = xami_evaluate(
-        model, test_dataloader, device=device, params_dict=eval_params_dict
+    train_info.test_evaluator, test_logger = xami_evaluate(
+        model=model,
+        data_loader=test_dataloader,
+        device=device,
+        params_dict=eval_params_dict,
+        coco=test_coco,
+        iou_types=iou_types,
+        score_thres=score_thres,
     )
 
     test_ar, test_ap = get_ar_ap(train_info.test_evaluator)

@@ -12,6 +12,13 @@ from pycocotools.coco import COCO
 import data.transforms as T
 
 
+def get_cocos(train_dataloader, val_dataloader, test_dataloader):
+    train_coco = get_coco_api_from_dataset(train_dataloader.dataset)
+    val_coco = get_coco_api_from_dataset(val_dataloader.dataset)
+    test_coco = get_coco_api_from_dataset(test_dataloader.dataset)
+    return train_coco, val_coco, test_coco
+
+
 class FilterAndRemapCocoCategories(object):
     def __init__(self, categories, remap=True):
         self.categories = categories

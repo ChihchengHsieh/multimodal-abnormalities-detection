@@ -27,7 +27,7 @@ def get_datasets(
     )
 
     train_dataset = ReflacxDataset(
-        **dataset_params_dict, split_str="train", transforms=get_transform(train=True),
+        **dataset_params_dict, split_str="train", transforms=get_transform(train=True), 
     )
 
     val_dataset = ReflacxDataset(

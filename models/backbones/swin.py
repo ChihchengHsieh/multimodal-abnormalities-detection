@@ -841,12 +841,13 @@ class SwinTransformer(nn.Module):
 
 
 
-class SwinFPN(nn.Module):
+
+class BackboneWithFPN(nn.Module):
     def __init__(
-        self, swin:SwinTransformer, fpn:FPN,
+        self, backbone:nn.Module, fpn:FPN,
     ):
         super().__init__()
-        self.swin = swin
+        self.swin = backbone
         self.fpn = fpn
         self.out_channels = self.fpn.out_channels
 

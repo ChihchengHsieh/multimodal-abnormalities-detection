@@ -9,7 +9,7 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 from matplotlib import colors
 from utils.pred import pred_thrs_check
-from utils.save import get_train_data
+from utils.save import get_data_from_metric_logger
 from data.datasets import ReflacxDataset, collate_fn
 from utils.detect_utils import MetricLogger
 from utils.coco_eval import CocoEvaluator, external_summarize
@@ -54,9 +54,53 @@ def get_legend_elements(disease_cmap_solid: Dict[str, str]) -> List[Line2D]:
     return legend_elements
 
 
+def plot_losses(
+    train_logers: Union[List[MetricLogger], List[Dict]],
+    val_logers: Union[List[MetricLogger], List[Dict]],
+):
+    if isinstance(train_logers[0], MetricLogger):
+        train_data = [get_data_from_metric_logger(loger) for loger in train_logers]
+    else:
+        train_data = train_logers
+
+    if isinstance(val_logers[0], MetricLogger):
+        val_data = [get_data_from_metric_logger(loger) for loger in val_logers]
+    else:
+        val_data = val_logers
+
+    train_data_keys = train_data[0].keys()
+
+    fig, subplots = plt.subplots(
+        len(train_data_keys),
+        figsize=(10, 5 * len(train_data_keys)),
+        dpi=80,
+        sharex=True,
+    )
+
+    fig.suptitle(f"Training Losses")
+
+    for i, k in enumerate(train_data_keys):
+        subplots[i].set_title(k)
+        subplots[i].plot(
+            [data[k] for data in train_data],
+            marker="o",
+            label="train",
+            color="steelblue",
+        )
+        if k in val_data[0].keys():
+            subplots[i].plot(
+                [data[k] for data in val_data], marker="o", label="val", color="orange"
+            )
+        subplots[i].legend(loc="upper left")
+
+    subplots[-1].set_xlabel("Epoch")
+    plt.plot()
+    plt.pause(0.01)
+
+
 def plot_loss(train_logers: Union[List[MetricLogger], List[Dict]]):
     if isinstance(train_logers[0], MetricLogger):
-        train_data = [get_train_data(loger) for loger in train_logers]
+        train_data = [get_data_from_metric_logger(loger) for loger in train_logers]
     else:
         train_data = train_logers
 
@@ -129,6 +173,102 @@ def plot_evaluator(
     recall_ax.set_title("Recall")
     recall_ax.plot(
         all_recalls, marker="o", label="Recall", color="darkorange",
+    )
+    recall_ax.legend(loc="upper left")
+
+    recall_ax.set_xlabel("Epoch")
+
+    plt.plot()
+    plt.pause(0.01)
+
+    return fig
+
+
+def get_ap_ar_for_train_val(
+    train_evaluator: CocoEvaluator,
+    val_evaluator: CocoEvaluator,
+    iouThr=0.5,
+    areaRng="all",
+    maxDets=10,
+):
+
+    train_ap = external_summarize(
+        train_evaluator.coco_eval["bbox"],
+        ap=1,
+        iouThr=iouThr,
+        areaRng=areaRng,
+        maxDets=maxDets,
+        print_result=False,
+    )
+    val_ap = external_summarize(
+        val_evaluator.coco_eval["bbox"],
+        ap=1,
+        iouThr=iouThr,
+        areaRng=areaRng,
+        maxDets=maxDets,
+        print_result=False,
+    )
+
+    train_ar = external_summarize(
+        train_evaluator.coco_eval["bbox"],
+        ap=0,
+        iouThr=iouThr,
+        areaRng=areaRng,
+        maxDets=maxDets,
+        print_result=False,
+    )
+
+    val_ar = external_summarize(
+        val_evaluator.coco_eval["bbox"],
+        ap=0,
+        iouThr=iouThr,
+        areaRng=areaRng,
+        maxDets=maxDets,
+        print_result=False,
+    )
+
+    return ({"ap": train_ap, "ar": train_ar,}, {"ap": val_ap, "ar": val_ar,})
+
+
+def plot_train_val_ap_ars(
+    train_ap_ars: List[Dict[str, float]], val_ap_ars: List[Dict[str, float]],
+) -> Figure:
+    """
+    Plot both training and validation evaluator during training to check overfitting.
+    """
+
+    fig, (precision_ax, recall_ax) = plt.subplots(
+        2, figsize=(10, 10), dpi=80, sharex=True,
+    )
+
+    precision_ax.set_title("Precision")
+    precision_ax.plot(
+        [ap_ar["ap"] for ap_ar in train_ap_ars],
+        marker="o",
+        label="train",
+        color="royalblue",
+    )
+    precision_ax.plot(
+        [ap_ar["ap"] for ap_ar in val_ap_ars],
+        marker="o",
+        label="validation",
+        color="darkorange",
+    )
+    precision_ax.legend(loc="upper left")
+
+    recall_ax.set_title("Recall")
+    recall_ax.plot(
+        [ap_ar["ar"] for ap_ar in train_ap_ars],
+        marker="o",
+        label="train",
+        color="royalblue",
+    )
+
+    recall_ax.plot(
+        [ap_ar["ar"] for ap_ar in val_ap_ars],
+        marker="o",
+        label="validation",
+        color="darkorange",
     )
     recall_ax.legend(loc="upper left")
 

@@ -20,16 +20,17 @@ def get_split_string(
 
 
 def get_split_list(
-    split_len: int, train_portion=0.7, val_portion=0.5, seed=123
+    split_len: int, train_portion=0.8, val_portion=0.5, seed=0
 ) -> List[str]:
 
     split_idxs = list(range(split_len))
 
     train_idxs, val_test_idxs = train_test_split(
-        split_idxs, train_size=train_portion, random_state=seed, shuffle=False
+        split_idxs, train_size=train_portion, random_state=seed, shuffle=True
     )
+
     val_idxs, test_idxs = train_test_split(
-        val_test_idxs, train_size=val_portion, random_state=seed, shuffle=False
+        val_test_idxs, train_size=val_portion, random_state=seed, shuffle=True
     )
 
     return [
