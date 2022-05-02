@@ -958,7 +958,7 @@ Using pretrained backbone. mobilenet_v3
 
 ### Determined comparison.
 
-## With clinical 
+## With clinical (v=0.4601, t=0.4286, best_v=0.5567, best_t=0.5392)
 ```
 ========================================For Training [with_clinical]========================================
 ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='with_clinical', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.01, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=10, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4)
