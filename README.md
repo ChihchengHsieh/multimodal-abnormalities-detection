@@ -869,6 +869,36 @@ Using pretrained backbone. mobilenet_v3
 <img width="591" alt="image" src="https://user-images.githubusercontent.com/37566901/166155657-7c82c0f4-964a-44af-a4b4-90826ae20ed5.png">
 <img width="619" alt="image" src="https://user-images.githubusercontent.com/37566901/166155661-e3b3d952-ae70-4ef8-96df-7ef1f548b827.png">
 
+## samller lr = 1e-3, 200 epoch (v= 0.3869, t=0.4522, best_v=0.4498, best_t=0.4252)
+
+```
+========================================For Training [ov_12]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='ov_12', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.001, weight_decay=0.001, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler=None, reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=3, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4)
+====================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_7222_ap_0_4626_test_ar_0_6727_ap_0_4956_epoch111_WithClincal_05-03-2022 20-39-41_ov_12]
+Best AR validation model has been saved to: [val_ar_0_8322_ap_0_3391_test_ar_0_8043_ap_0_3448_epoch7_WithClincal_05-01-2022 14-56-30_ov_12]
+The final model has been saved to: [val_ar_0_6650_ap_0_3870_test_ar_0_6604_ap_0_4493_epoch200_WithClincal_05-03-2022 23-04-30_ov_12]
+
+====================================================================================================
+Load custom model
+Using pretrained backbone. mobilenet_v3
+[model]: 1,223,303
+[model.backbone]: 1,009,968
+[model.rpn]: 3,595
+[model.roi_heads]: 27,166
+[model.roi_heads.box_head]: 26,176
+[model.roi_heads.box_head.fc6]: 25,120
+[model.roi_heads.box_head.fc7]: 1,056
+[model.roi_heads.box_predictor]: 990
+[model.clinical_convs]: 41,904
+[model.fuse_convs]: 32,592
+```
+
+<img width="596" alt="image" src="https://user-images.githubusercontent.com/37566901/166484686-fcbed325-720f-47e9-959c-594cf2d94e8b.png">
+<img width="622" alt="image" src="https://user-images.githubusercontent.com/37566901/166484793-401e90eb-2b04-4ff2-bd6a-afb62c36a148.png">
+
+
 ## smaller lr = 1e-4 (v=0.3165, t=0.3827, best_v=0.4386, best_t=0.4241)
 ```
 ========================================For Training [ov_13]========================================
