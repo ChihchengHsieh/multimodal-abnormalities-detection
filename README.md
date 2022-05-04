@@ -1047,15 +1047,16 @@ Q: When we're trying to evaluate the model, the CXR + clinical model does has a 
 
 E1: Since we usually use 0.3 as the threshold for generating the bounding boxes, we can apply the same threshold for evaluation and see what's the performance gap between default (thrs=0.3) and thrs=0.3.
 
-L1: From the table below, we can see the gap between thrs=0.3 and thrs=0.05, and the CXR+Clinical(lr=1e-2) has a terrible performance when it get thrs=0.3.
+L1: From the table below, we can see the gap between thrs=0.3 and thrs=0.05, and the CXR+Clinical(lr=1e-2) has a big performance drop when it get thrs=0.3.
 
 |   |CXR|CXR+Clinical(lr=1e-3)|CXR+Clinical(lr=1e-2)|
 |---|---|---|---|
-|thrs=0.05|0.140|0.178|0.181|
-|thrs=0.3|0.055|0.114|0.037|
+|thrs=0.05|0.2716|0.4956|0.5391|
+|thrs=0.1|0.2614|0.4904|0.4870|
+|thrs=0.3|0.1475|0.3451|0.2468|
 
 E2: We will also need to check if the CXR + clinical model has a better performance at thrs=0.3.
-L2: As the model (lr=1e-3) still has a better performance. The model (lr=1e-2) is just terrible.
+L2: As the model (lr=1e-3) still has a better performance. The model (lr=1e-2) has a large performance gap.
 
 E3: the original CXR + clinical model may have even more performance drop
 
