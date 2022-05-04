@@ -1041,6 +1041,30 @@ Using pretrained backbone. mobilenet_v3
 <img width="614" alt="image" src="https://user-images.githubusercontent.com/37566901/166185322-102a9ce8-bd43-471c-b20b-e1d6958e177b.png">
 
 
+## Attemps of evaluation:
+
+Q: When we're trying to evaluate the model, the CXR + clinical model does has a better performance on the validation and test sets. However, when we actually print out the bounding boxes, the CXR model seems to make more sense.
+
+E1: Since we usually use 0.3 as the threshold for generating the bounding boxes, we can apply the same threshold for evaluation and see what's the performance gap between default (thrs=0.3) and thrs=0.3.
+
+L1: From the table below, we can see the gap between thrs=0.3 and thrs=0.05, and the CXR+Clinical(lr=1e-2) has a terrible performance when it get thrs=0.3.
+
+|   |CXR|CXR+Clinical(lr=1e-3)|CXR+Clinical(lr=1e-2)|
+|---|---|---|---|
+|thrs=0.05|0.140|0.178|0.181|
+|thrs=0.3|0.055|0.114|0.037|
+
+E2: We will also need to check if the CXR + clinical model has a better performance at thrs=0.3.
+L2: As the model (lr=1e-3) still has a better performance. The model (lr=1e-2) is just terrible.
+
+E3: the original CXR + clinical model may have even more performance drop
+
+E4: What if we use add as the fusion strategy?
+
+E5: what if we make the fusion strategy residule?
+
+E6: Why the performance is such low comparing to the ap and ar we got during training.
+
 ### This is pretty close to the regulation limit.
 
 ```
