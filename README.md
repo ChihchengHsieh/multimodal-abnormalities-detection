@@ -1287,14 +1287,18 @@ L1: From the table below, we can see the gap between thrs=0.3 and thrs=0.05, and
 E2: We will also need to check if the CXR + clinical model has a better performance at thrs=0.3.
 L2: As the model (lr=1e-3) still has a better performance. The model (lr=1e-2) has a large performance gap.
 
-E3: the original CXR + clinical model may have even more performance drop
+E3: the original CXR + clinical model may have even more performance drop.
+L3: Yes, the orignial one is far worse than the lr=1e-3 one.
 
 E4: What if we use add as the fusion strategy?
+L4: It works similar to concatenation.
 
 E5: what if we make the fusion strategy residule?
+L5: If we use residule in fusion, then the training graph, AP and AR become more like the CXR model.
 
 E6: Why the performance is such low comparing to the ap and ar we got during training.
-
+L6: False issue, it's just a wrong coco api fed into the evaluator.
+ 
 ### This is pretty close to the regulation limit.
 
 ```
