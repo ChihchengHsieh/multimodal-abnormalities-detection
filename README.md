@@ -1280,9 +1280,9 @@ L1: From the table below, we can see the gap between thrs=0.3 and thrs=0.05, and
 
 |   |CXR|CXR+Clinical(lr=1e-3)|CXR+Clinical(lr=1e-2)|
 |---|---|---|---|
-|thrs=0.05|0.2716|0.4956|0.5391|
-|thrs=0.1|0.2614|0.4904|0.4870|
-|thrs=0.3|0.1475|0.3451|0.2468|
+|score_thrs=0.05|0.2716|0.4956|0.5391|
+|score_thrs=0.1|0.2614|0.4904|0.4870|
+|score_thrs=0.3|0.1475|0.3451|0.2468|
 
 E2: We will also need to check if the CXR + clinical model has a better performance at thrs=0.3.
 L2: As the model (lr=1e-3) still has a better performance. The model (lr=1e-2) has a large performance gap.
