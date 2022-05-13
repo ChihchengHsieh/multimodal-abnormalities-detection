@@ -1270,6 +1270,37 @@ Using pretrained backbone. mobilenet_v3
 ### fuse_depth = 20
 fail to run.
 
+
+
+## Improvement:
+```
+========================================For Training [with_clinical_residule_add]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='with_clinical_residule_add', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler=None, reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=10, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4, fusion_strategy='concat', fusion_residule=False)
+=========================================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_9667_ap_0_6658_test_ar_0_8724_ap_0_5694_epoch13_WithClincal_05-13-2022 22-18-31_with_clinical_residule_add]
+Best AR validation model has been saved to: [val_ar_0_9667_ap_0_6344_test_ar_0_8704_ap_0_5807_epoch12_WithClincal_05-13-2022 22-16-49_with_clinical_residule_add]
+The final model has been saved to: [val_ar_0_8055_ap_0_3879_test_ar_0_6888_ap_0_4654_epoch32_WithClincal_05-13-2022 22-47-35_with_clinical_residule_add]
+
+=========================================================================================================================
+Load custom model
+Using pretrained backbone. mobilenet_v3
+[model]: 1,223,303
+[model.backbone]: 1,009,968
+[model.rpn]: 3,595
+[model.roi_heads]: 27,166
+[model.roi_heads.box_head]: 26,176
+[model.roi_heads.box_head.fc6]: 25,120
+[model.roi_heads.box_head.fc7]: 1,056
+[model.roi_heads.box_predictor]: 990
+[model.clinical_convs]: 41,904
+[model.fuse_convs]: 32,592
+```
+<img width="497" alt="image" src="https://user-images.githubusercontent.com/37566901/168286863-37cfe110-4442-4f1c-a987-f92e316e55ad.png">
+<img width="517" alt="image" src="https://user-images.githubusercontent.com/37566901/168286905-dbcc85f5-b584-47c6-a672-2520fba6a65b.png">
+<img width="517" alt="image" src="https://user-images.githubusercontent.com/37566901/168286929-2dd83097-e2a0-4e41-a176-336a7863b7c6.png">
+
+
 ## Attemps of evaluation:
 
 Q: When we're trying to evaluate the model, the CXR + clinical model does has a better performance on the validation and test sets. However, when we actually print out the bounding boxes, the CXR model seems to make more sense.
