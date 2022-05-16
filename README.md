@@ -1943,6 +1943,66 @@ Using pretrained backbone. mobilenet_v3
 <img width="346" alt="image" src="https://user-images.githubusercontent.com/37566901/168542231-8e340310-d435-4327-b0b0-d230b07dad3b.png">
 
 
+
+# patience = 30
+
+## CXR + Clinical (0.6776, 0.6534)
+```
+========================================For Training [CXR+Clinical]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='CXR+Clinical', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=30, reduceLROnPlateau_full_stop=True, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4, fusion_strategy='concat', fusion_residule=False)
+===========================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_9381_ap_0_6945_test_ar_0_8224_ap_0_6378_epoch20_WithClincal_05-16-2022 18-13-10_CXR+Clinical]
+Best AR validation model has been saved to: [val_ar_0_9667_ap_0_6652_test_ar_0_8349_ap_0_6278_epoch26_WithClincal_05-16-2022 18-23-31_CXR+Clinical]
+The final model has been saved to: [val_ar_0_9556_ap_0_6776_test_ar_0_7849_ap_0_6534_epoch71_WithClincal_05-16-2022 19-38-03_CXR+Clinical]
+
+===========================================================================================================
+Load custom model
+Using pretrained backbone. mobilenet_v3
+[model]: 1,223,303
+[model.backbone]: 1,009,968
+[model.rpn]: 3,595
+[model.roi_heads]: 27,166
+[model.roi_heads.box_head]: 26,176
+[model.roi_heads.box_head.fc6]: 25,120
+[model.roi_heads.box_head.fc7]: 1,056
+[model.roi_heads.box_predictor]: 990
+[model.clinical_convs]: 41,904
+[model.fuse_convs]: 32,592
+```
+<img width="495" alt="image" src="https://user-images.githubusercontent.com/37566901/168588982-d5261904-0493-47cc-9f6f-2a4814ac6550.png">
+<img width="518" alt="image" src="https://user-images.githubusercontent.com/37566901/168589010-b2cb3a70-68e1-4f7a-b687-3b8b545dfadc.png">
+<img width="518" alt="image" src="https://user-images.githubusercontent.com/37566901/168589031-7be013ca-9fe0-415a-a4ce-7a2a142f921b.png">
+
+
+## CXR (0.4046, 0.3893)
+
+```
+========================================For Training [CXR]========================================
+ModelSetup(use_clinical=False, use_custom_model=True, use_early_stop_model=True, name='CXR', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=30, reduceLROnPlateau_full_stop=True, multiStepLR_milestones=[30, 50, 70, 90], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=32, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4, fusion_strategy='concat', fusion_residule=False)
+==================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_7518_ap_0_5042_test_ar_0_5388_ap_0_3255_epoch22_WithoutClincal_05-16-2022 20-18-25_CXR]
+Best AR validation model has been saved to: [val_ar_0_7518_ap_0_5042_test_ar_0_5388_ap_0_3255_epoch22_WithoutClincal_05-16-2022 20-18-25_CXR]
+The final model has been saved to: [val_ar_0_5966_ap_0_4046_test_ar_0_5388_ap_0_3893_epoch54_WithoutClincal_05-16-2022 21-10-18_CXR]
+
+==================================================================================================
+Load custom model
+Using pretrained backbone. mobilenet_v3
+[model]: 1,040,729
+[model.backbone]: 1,009,968
+[model.rpn]: 3,595
+[model.roi_heads]: 27,166
+[model.roi_heads.box_head]: 26,176
+[model.roi_heads.box_head.fc6]: 25,120
+[model.roi_heads.box_head.fc7]: 1,056
+[model.roi_heads.box_predictor]: 990
+```
+<img width="498" alt="image" src="https://user-images.githubusercontent.com/37566901/168589122-9eddf99f-28db-4ce9-bb4d-f3a31c5b9b48.png">
+<img width="518" alt="image" src="https://user-images.githubusercontent.com/37566901/168589693-b3223b4f-e5f2-4c03-b3d8-721becbf20f3.png">
+<img width="520" alt="image" src="https://user-images.githubusercontent.com/37566901/168589658-2a70ebba-753e-4261-8392-c361f4bee89a.png">
+
+
 ## Attemps of evaluation:
 
 Q: When we're trying to evaluate the model, the CXR + clinical model does has a better performance on the validation and test sets. However, when we actually print out the bounding boxes, the CXR model seems to make more sense.
