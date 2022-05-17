@@ -2002,6 +2002,65 @@ Using pretrained backbone. mobilenet_v3
 <img width="518" alt="image" src="https://user-images.githubusercontent.com/37566901/168589693-b3223b4f-e5f2-4c03-b3d8-721becbf20f3.png">
 <img width="520" alt="image" src="https://user-images.githubusercontent.com/37566901/168589658-2a70ebba-753e-4261-8392-c361f4bee89a.png">
 
+# Correct version:
+
+## Experiment 1
+### Setup
+```
+ModelSetup(
+        name="CXR+Clinical",
+        use_clinical=True,
+        use_custom_model=True,
+        use_early_stop_model=True,
+        best_ar_val_model_path=None,
+        best_ap_val_model_path=None,
+        final_model_path=None,
+        backbone="mobilenet_v3",
+        optimiser="sgd",
+        lr=1e-3,
+        # lr=1e-4,
+        # weight_decay=0.001,
+        weight_decay=0,
+        pretrained=True,
+        record_training_performance=True,
+        dataset_mode="unified",
+        image_size=256,
+        backbone_out_channels=16,
+        batch_size=4,
+        warmup_epochs=0,
+        lr_scheduler="ReduceLROnPlateau",
+        # lr_scheduler=None,
+        reduceLROnPlateau_factor=0.1,
+        reduceLROnPlateau_patience=10,
+        reduceLROnPlateau_full_stop=False,
+        multiStepLR_milestones=[30, 50, 70, 90],
+        multiStepLR_gamma=0.1,
+        representation_size=32,
+        mask_hidden_layers=256,
+        using_fpn=False,
+        use_mask=False,
+        clinical_expand_dropout_rate=0,
+        clinical_conv_dropout_rate=0,
+        clinical_input_channels=32,
+        clinical_num_len=9,
+        clinical_conv_channels=32,
+        fuse_conv_channels=32,
+        fuse_dropout_rate=0,
+        box_head_dropout_rate=0,
+        fuse_depth=4,
+        fusion_strategy="add",
+        fusion_residule=False,
+    )
+
+# No loss_multiplier,
+# Not using gt in training detector.
+# No pretraining epochs for RPN.
+
+```
+![image](https://user-images.githubusercontent.com/37566901/168739336-073f8c69-55dd-48b7-a5db-f4304e17d528.png)
+![image](https://user-images.githubusercontent.com/37566901/168739385-63085a65-ff3d-4639-8520-27a405c91578.png)
+![image](https://user-images.githubusercontent.com/37566901/168739407-07d4c8d4-9744-41d7-aac6-97cad9a1989d.png)
+![image](https://user-images.githubusercontent.com/37566901/168739426-11438ef4-b118-4790-83a2-9f3d5e1e1925.png)
 
 ## Attemps of evaluation:
 
