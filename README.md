@@ -2062,6 +2062,38 @@ ModelSetup(
 ![image](https://user-images.githubusercontent.com/37566901/168739407-07d4c8d4-9744-41d7-aac6-97cad9a1989d.png)
 ![image](https://user-images.githubusercontent.com/37566901/168739426-11438ef4-b118-4790-83a2-9f3d5e1e1925.png)
 
+
+## ResNet50, with clinical.
+
+```
+========================================For Training [CXR_Clinical]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='CXR_Clinical', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='resnet50', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=512, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler='MultiStepLR', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=500, reduceLROnPlateau_full_stop=False, multiStepLR_milestones=[100], multiStepLR_gamma=0.1, representation_size=64, mask_hidden_layers=256, using_fpn=True, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=32, clinical_num_len=9, clinical_conv_channels=256, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=4, fusion_strategy='add', fusion_residule=False)
+===========================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_5541_ap_0_3371_test_ar_0_4811_ap_0_1730_epoch21_WithClincal_05-18-2022 09-43-35_CXR_Clinical]
+Best AR validation model has been saved to: [val_ar_0_5998_ap_0_2663_test_ar_0_4458_ap_0_2243_epoch56_WithClincal_05-18-2022 11-36-38_CXR_Clinical]
+The final model has been saved to: [val_ar_0_2478_ap_0_1711_test_ar_0_2610_ap_0_2081_epoch119_WithClincal_05-18-2022 14-58-14_CXR_Clinical]
+
+===========================================================================================================
+Load custom model
+Using ResNet as backbone
+Using pretrained backbone. resnet50
+Not using pretrained MaksRCNN model.
+[model]: 42,150,939
+[model.backbone]: 26,799,296
+[model.rpn]: 593,935
+[model.roi_heads]: 808,990
+[model.roi_heads.box_head]: 807,040
+[model.roi_heads.box_head.fc6]: 802,880
+[model.roi_heads.box_head.fc7]: 4,160
+[model.roi_heads.box_predictor]: 1,950
+[model.clinical_convs]: 3,543,552
+[model.fuse_convs]: 2,952,960
+```
+<img width="408" alt="image" src="https://user-images.githubusercontent.com/37566901/168960866-0b438899-404b-4d54-974b-ae199d997ec5.png">
+<img width="510" alt="image" src="https://user-images.githubusercontent.com/37566901/168960898-ba1e1756-dd29-4bcf-b150-d79ecaf1040c.png">
+<img width="511" alt="image" src="https://user-images.githubusercontent.com/37566901/168960909-b1c16979-35e1-42a2-9e8e-d768a730549b.png">
+
 ## Attemps of evaluation:
 
 Q: When we're trying to evaluate the model, the CXR + clinical model does has a better performance on the validation and test sets. However, when we actually print out the bounding boxes, the CXR model seems to make more sense.
