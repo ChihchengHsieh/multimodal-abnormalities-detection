@@ -11,7 +11,7 @@ class ModelSetup:
     best_ar_val_model_path: str = None
     best_ap_val_model_path: str = None
     final_model_path: str = None
-    backbone: str = "resnet50"  # [resnet18, resnet50, swin]
+    backbone: str = "resnet50"  # [resnet18, resnet50, swin, mobilenet_v3]
     optimiser: str = "adamw"  # [adamw, sgd]
     lr: float = 0.0005
     weight_decay: float = 0.05
@@ -27,6 +27,7 @@ class ModelSetup:
 
     reduceLROnPlateau_factor: float = 0.1
     reduceLROnPlateau_patience: int = 3
+    reduceLROnPlateau_full_stop: bool = False
 
     multiStepLR_milestones: List[int] = field(default_factory=lambda: [30, 50, 70, 90])
     multiStepLR_gamma: float = 0.1
@@ -41,15 +42,18 @@ class ModelSetup:
     using_fpn: bool = False
     use_mask: bool = True
 
-    clinical_expand_dropout_rate:float = 0
-    clinical_conv_dropout_rate:float = 0
-    clinical_input_channels:int =32
+    clinical_expand_dropout_rate: float = 0
+    clinical_conv_dropout_rate: float = 0
+    clinical_input_channels: int = 32
     clinical_num_len: int = 9
     clinical_conv_channels: int = 32
 
-    fuse_conv_channels: int =32 
-    fuse_dropout_rate:float = 0
+    fuse_conv_channels: int = 32
+    fuse_dropout_rate: float = 0
 
     box_head_dropout_rate: float = 0
     fuse_depth: int = 4
+
+    fusion_strategy: str = "concat"  # ["add", "concat"]
+    fusion_residule: bool =  False
 

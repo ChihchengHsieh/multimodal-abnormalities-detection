@@ -34,8 +34,6 @@ model_path_dict = {
 
 ## Only take the best model, or take all the models?
 
-
-
 def get_model_path(use_early_stop_model, use_custom_modal, use_clinical):
     model_path = model_path_dict["early_stop" if use_early_stop_model else "20epoch"][
         "custom" if use_custom_modal else "original"

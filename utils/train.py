@@ -7,10 +7,8 @@ from torch.optim.lr_scheduler import _LRScheduler, ReduceLROnPlateau, MultiStepL
 from models.setup import ModelSetup
 
 
-def get_optimiser(model: nn.Module, setup: ModelSetup) -> Optimizer:
+def get_optimiser(params, setup: ModelSetup) -> Optimizer:
 
-    params = [p for p in model.parameters() if p.requires_grad]
-    print(f"Model size: {sum([param.nelement()  for param in model.parameters()]):,}")
 
     if setup.optimiser == "adamw":
         print(f"Using AdamW as optimizer with lr={setup.lr}")
@@ -34,7 +32,7 @@ def get_lr_scheduler(optimizer: Optimizer, setup: ModelSetup) -> _LRScheduler:
     if setup.lr_scheduler == "ReduceLROnPlateau":
         lr_scheduler = ReduceLROnPlateau(
             optimizer,
-            mode="max",
+            mode="min",
             factor=setup.reduceLROnPlateau_factor,
             patience=setup.reduceLROnPlateau_patience,
             min_lr=1e-10,

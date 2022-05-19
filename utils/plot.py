@@ -231,7 +231,7 @@ def get_ap_ar_for_train_val(
 
 
 def plot_train_val_ap_ars(
-    train_ap_ars: List[Dict[str, float]], val_ap_ars: List[Dict[str, float]],
+    train_ap_ars: List[Dict[str, float]], val_ap_ars: List[Dict[str, float]], fig_title=None
 ) -> Figure:
     """
     Plot both training and validation evaluator during training to check overfitting.
@@ -240,6 +240,9 @@ def plot_train_val_ap_ars(
     fig, (precision_ax, recall_ax) = plt.subplots(
         2, figsize=(10, 10), dpi=80, sharex=True,
     )
+
+    if fig_title:
+        fig.suptitle(f"{fig_title}")
 
     precision_ax.set_title("Precision")
     precision_ax.plot(

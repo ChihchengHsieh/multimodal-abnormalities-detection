@@ -17,7 +17,7 @@ from torchvision.models.detection.faster_rcnn import (
     MultiScaleRoIAlign,
     RPNHead,
     # RegionProposalNetwork,
-    # RoIHeads,
+    RoIHeads,
     # TwoMLPHead,
     FastRCNNPredictor,
     AnchorGenerator,
@@ -545,8 +545,9 @@ class XAMIRoIHeads(nn.Module):
         gt_boxes = [t["boxes"].to(dtype) for t in targets]
         gt_labels = [t["labels"] for t in targets]
 
-        # append ground-truth bboxes to propos
-        proposals = self.add_gt_proposals(proposals, gt_boxes)
+        # append ground-truth bboxes to propos (facilitate the training.)
+        if self.training:
+            proposals = self.add_gt_proposals(proposals, gt_boxes)
 
         # get matching gt indices for each proposal
         matched_idxs, labels = self.assign_targets_to_proposals(
@@ -690,6 +691,7 @@ class XAMIRoIHeads(nn.Module):
         pred_boxes, pred_scores, pred_labels = self.postprocess_detections(
             class_logits, box_regression, proposals, image_shapes
         )
+
         num_images = len(pred_boxes)
 
         for i in range(num_images):
@@ -806,11 +808,14 @@ class MultimodalGeneralizedRCNN(nn.Module):
         # self.fuse_depth = fuse_depth
         self.setup = setup
 
+        if self.setup.using_fpn:
+            assert (
+                self.backbone.out_channels == self.setup.clinical_conv_channels
+            ), f"backbone channel [{self.backbone.out_channels}] has to be the same as clinical_conv_channels [{self.setup.clinical_conv_channels}]"
+
         example_img_features = self.backbone(
             self.transform([torch.ones(3, 2048, 2048)])[0].tensors
         )
-
-        self.image_feature_map_size = example_img_features.shape[-1]
 
         # if isinstance(example_img_features, OrderedDict):
         if isinstance(example_img_features, torch.Tensor):
@@ -818,6 +823,9 @@ class MultimodalGeneralizedRCNN(nn.Module):
             example_img_features = OrderedDict([("0", example_img_features)])
         else:
             self.feature_keys = example_img_features.keys()
+
+        last_key = list(example_img_features.keys())[-1]
+        self.image_feature_map_size = example_img_features[last_key].shape[-1]
 
         if self.setup.use_clinical:
             self.build_clinical_model()
@@ -861,11 +869,18 @@ class MultimodalGeneralizedRCNN(nn.Module):
                             padding=1,
                         ),
                         nn.BatchNorm2d(self.setup.clinical_conv_channels,),
-                        nn.ReLU(inplace=False),
-                        nn.Dropout2d(
-                            p=self.setup.clinical_expand_dropout_rate, inplace=False,
-                        ),
                     ]
+                    + (
+                        []
+                        if i == expand_times - 1
+                        else [
+                            nn.ReLU(inplace=False),
+                            nn.Dropout2d(
+                                p=self.setup.clinical_expand_dropout_rate,
+                                inplace=False,
+                            ),
+                        ]
+                    )
                     for i in range(
                         int(expand_times)
                     )  # expand to the same as image size.
@@ -907,11 +922,17 @@ class MultimodalGeneralizedRCNN(nn.Module):
                                 else self.setup.clinical_conv_channels
                             )
                         ),
-                        nn.ReLU(inplace=False),
-                        nn.Dropout2d(
-                            p=self.setup.clinical_conv_dropout_rate, inplace=False,
-                        ),
                     ]
+                    + (
+                        []
+                        if i == shrink_times - 1
+                        else [
+                            nn.ReLU(inplace=False),
+                            nn.Dropout2d(
+                                p=self.setup.clinical_conv_dropout_rate, inplace=False,
+                            ),
+                        ]
+                    )
                     for i in range(shrink_times)
                 ]
             )
@@ -925,7 +946,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
                     [
                         nn.Conv2d(
                             (
-                                self.backbone.out_channels * 2
+                                self.get_fuse_input_channel()
                                 if i == 0
                                 else self.setup.clinical_conv_channels
                             ),
@@ -955,47 +976,150 @@ class MultimodalGeneralizedRCNN(nn.Module):
 
         self.fuse_convs = nn.Sequential(*fuse_convs_modules)
 
+    def get_fuse_input_channel(self,):
+        if self.setup.fusion_strategy == "concat":
+            return self.backbone.out_channels * 2
+        elif self.setup.fusion_strategy == "add":
+            return self.backbone.out_channels
+        else:
+            raise Exception(
+                f"Unsupported fusion strategy: {self.setup.fusion_strategy}"
+            )
+
     def _build_fpn_clinical_model(self,):
+
+        shrink_times = int(
+            math.log(self.setup.image_size, 2)
+            - math.log(self.image_feature_map_size, 2)
+        )
+
+        fpn_count = len(self.feature_keys)
+
+        first_layer_shrink_count = (shrink_times - fpn_count) + 1
+
         self.clinical_convs = nn.ModuleDict({})
-        for k in self.feature_keys:
-            self.clinical_convs[k] = nn.Sequential(
+
+        for i, key in enumerate(self.feature_keys):
+            if i == 0:
+                network = list(
+                    itertools.chain.from_iterable(
+                        [
+                            [
+                                nn.Conv2d(
+                                    self.backbone.out_channels,
+                                    self.backbone.out_channels,
+                                    kernel_size=3,
+                                    stride=2,
+                                    padding=1,
+                                ),
+                                nn.BatchNorm2d(self.backbone.out_channels),
+                                nn.ReLU(inplace=False),
+                            ]
+                            for i in range(first_layer_shrink_count)
+                        ]
+                    )
+                )
+                self.clinical_convs[key] = nn.Sequential(*network)
+            else:
+                network = [
+                    nn.Conv2d(
+                        self.backbone.out_channels,
+                        self.backbone.out_channels,
+                        kernel_size=3,
+                        stride=2,
+                        padding=1,
+                    ),
+                    nn.BatchNorm2d(self.backbone.out_channels),
+                ] + (
+                    [] if i == len(self.feature_keys) - 1 else [nn.ReLU(inplace=False),]
+                )
+
+                self.clinical_convs[key] = nn.Sequential(*network)
+
+        self.fuse_convs = nn.ModuleDict({})
+
+        for i, key in enumerate(self.feature_keys):
+            network = [
                 nn.Conv2d(
-                    self.setup.clinical_conv_channels,
-                    self.setup.clinical_conv_channels,
+                    (
+                        self.get_fuse_input_channel()
+                        if i == 0
+                        else self.setup.clinical_conv_channels
+                    ),
+                    (
+                        self.backbone.out_channels
+                        if i == (self.setup.fuse_depth - 1)
+                        else self.setup.clinical_conv_channels
+                    ),
                     kernel_size=3,
                     stride=2,
                     padding=1,
                 ),
-                nn.BatchNorm2d(self.setup.clinical_conv_channels),
-                nn.ReLU(inplace=False),
-                nn.Dropout2d(p=self.setup.clinical_conv_dropout_rate, inplace=False,),
-            )
-
-        self.fuse_convs = nn.ModuleDict({})
-        for k in self.feature_keys:
-            self.fuse_convs[k] = nn.Sequential(
-                nn.Conv2d(
-                    self.backbone.out_channels + self.setup.clinical_conv_channels,
-                    self.setup.fuse_conv_channels,
-                    kernel_size=3,
-                    stride=1,
-                    padding=1,
+                nn.BatchNorm2d(
+                    (
+                        self.backbone.out_channels
+                        if i == (self.setup.fuse_depth - 1)
+                        else self.setup.clinical_conv_channels
+                    )
                 ),
-                nn.BatchNorm2d(self.setup.fuse_conv_channels),
-                nn.ReLU(inplace=False),
-                nn.Dropout2d(p=self.setup.fuse_dropout_rate, inplace=False,),
-            )
+                # nn.ReLU(inplace=False),
+            ]
+            self.fuse_convs[key] = nn.Sequential(*network)
+
+    # def _build_fpn_clinical_model(self,):
+    #             shrink_times = int(
+    #         math.log(self.setup.image_size, 2)
+    #         - math.log(self.image_feature_map_size, 2)
+    #     )
+
+    #     fpn_count =  len(self.feature_keys)
+
+    #     first_layer_shrink_count = shrink_times - fpn_count
+
+    #     self.clinical_convs = ModuleDict({})
+
+    #     for i, key in enumerate(self.feature_keys):
+    #         if i ==0:
+
+    #     self.clinical_convs = nn.ModuleDict({})
+    #     for k in self.feature_keys:
+    #         self.clinical_convs[k] = nn.Sequential(
+    #             nn.Conv2d(
+    #                 self.setup.clinical_conv_channels,
+    #                 self.setup.clinical_conv_channels,
+    #                 kernel_size=3,
+    #                 stride=2,
+    #                 padding=1,
+    #             ),
+    #             nn.BatchNorm2d(self.setup.clinical_conv_channels),
+    #             nn.ReLU(inplace=False),
+    #             nn.Dropout2d(p=self.setup.clinical_conv_dropout_rate, inplace=False,),
+    #         )
+
+    #     self.fuse_convs = nn.ModuleDict({})
+    #     for k in self.feature_keys:
+    #         self.fuse_convs[k] = nn.Sequential(
+    #             nn.Conv2d(
+    #                 self.backbone.out_channels + self.setup.clinical_conv_channels,
+    #                 self.setup.fuse_conv_channels,
+    #                 kernel_size=3,
+    #                 stride=1,
+    #                 padding=1,
+    #             ),
+    #             nn.BatchNorm2d(self.setup.fuse_conv_channels),
+    #             nn.ReLU(inplace=False),
+    #             nn.Dropout2d(p=self.setup.fuse_dropout_rate, inplace=False,),
+    #         )
 
     def get_clinical_features(self, clinical_num, clinical_cat):
-
         clincal_embout = self.gender_emb_layer(torch.concat(clinical_cat, axis=0))
         clinical_input = torch.concat(
             [torch.stack(clinical_num, dim=0), clincal_embout], axis=1
         )[:, :, None, None]
 
-        clinical_input = self.clinical_expand_conv(clinical_input)
-
         clinical_features = OrderedDict({})
+
+        clinical_input = self.clinical_expand_conv(clinical_input)
 
         if self.setup.using_fpn:
             for k in self.clinical_convs.keys():
@@ -1016,26 +1140,43 @@ class MultimodalGeneralizedRCNN(nn.Module):
 
         return losses, detections
 
+    def fuse_feature_maps(
+        self, img_feature: torch.Tensor, clinical_feature: torch.Tensor
+    ) -> torch.Tensor:
+        if self.setup.fusion_strategy == "concat":
+            return torch.concat([img_feature, clinical_feature], axis=1)
+        elif self.setup.fusion_strategy == "add":
+            return img_feature + clinical_feature
+        else:
+            raise Exception(
+                f"Unsupported fusion strategy: {self.setup.fusion_strategyn}"
+            )
+
     def fuse_features(self, img_features, clinical_features):
         features = OrderedDict({})
         if self.setup.using_fpn:
             for k in self.feature_keys:
                 features[k] = self.fuse_convs[k](
-                    torch.concat([img_features[k], clinical_features[k]], axis=1)
+                    self.fuse_feature_maps(img_features[k], clinical_features[k])
                 )
+
+                if self.setup.fusion_strategy == "add" and self.setup.fusion_residule:
+                    features[k] = features[k] + img_features[k] + clinical_features[k]
 
         else:
             k = "0"
             features[k] = self.fuse_convs(
-                torch.concat([img_features[k], clinical_features[k]], axis=1)
+                self.fuse_feature_maps(img_features[k], clinical_features[k])
             )
+            if self.setup.fusion_strategy == "add" and self.setup.fusion_residule:
+                features[k] = features[k] + img_features[k] + clinical_features[k]
 
         return features
 
     def forward(self, images, clinical_num=None, clinical_cat=None, targets=None):
 
         """
-        Args:
+        Args
             images (list[Tensor]): images to be processed
             targets (list[Dict[Tensor]]): ground-truth boxes present in the image (optional)
 

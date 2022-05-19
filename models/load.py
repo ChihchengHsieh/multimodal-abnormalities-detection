@@ -1,12 +1,14 @@
 import os, pickle, torch
 import torch.nn as nn
 from typing import Dict, Tuple, Union
+from models.dynamic_loss import DynamicWeightedLoss
 from utils.train import get_optimiser
 
 from .build import create_model_from_setup
 from .train import TrainedModels, TrainingInfo
-from torch.optim.optimizer import Optimizer 
+from torch.optim.optimizer import Optimizer
 from .setup import ModelSetup
+
 
 def get_trained_model(
     model_select: TrainedModels, labels_cols, device, **kwargs,
@@ -18,30 +20,33 @@ def get_trained_model(
     model = create_model_from_setup(labels_cols, train_info.model_setup, **kwargs)
     model.to(device)
 
-    model.load_state_dict(
-        torch.load(
+    cp : Dict = torch.load(
             os.path.join("trained_models", model_select.value), map_location=device
         )
-    )
 
-    optim_path = os.path.join(
-        os.path.join("trained_models", f"{train_info.final_model_path}_optim")
+    model.load_state_dict(
+        cp['model_state_dict']
     )
+    model.to(device)
 
-    if os.path.isfile(optim_path):
-        print("Found optimizer for this model.")
-        optim: torch.optim.optimizer.Optimizer = get_optimiser(model,train_info.model_setup)
-        optim.load_state_dict(
-            torch.load(
-                os.path.join("trained_models", f"{train_info.final_model_path}_optim"),
-                map_location=device,
-            )
+    params = [p for p in model.parameters() if p.requires_grad]
+
+    dynamic_weight = None
+    if "dynamic_weight_state_dict" in cp:
+        dynamic_weight = DynamicWeightedLoss()
+        dynamic_weight.to(device)
+        dynamic_weight.load_state_dict(cp['dynamic_weight_state_dict'])
+        params += [p for p in dynamic_weight.parameters() if p.requires_grad]
+        
+    optim = None
+    if "optimizer_state_dict" in cp:
+        optim: torch.optim.optimizer.Optimizer = get_optimiser(
+            params, train_info.model_setup
         )
-    else:
-        optim = None
-        print("No optimizer found for this model.")
+        optim.load_state_dict(cp['optimizer_state_dict'])
 
-    return model, train_info, optim
+    return model, train_info, optim, dynamic_weight
+
 
 def get_current_epoch(trained_model: TrainedModels) -> int:
     return int(
@@ -52,13 +57,23 @@ def get_current_epoch(trained_model: TrainedModels) -> int:
         ).replace("epoch", "")
     )
 
-def get_model_name(trained_model: TrainedModels, naming_map: Dict[TrainedModels, str]= None) -> str:
-   return naming_map[trained_model] if naming_map else str(trained_model).split(".")[-1]
+
+def get_model_name(
+    trained_model: TrainedModels, naming_map: Dict[TrainedModels, str] = None
+) -> str:
+    return (
+        naming_map[trained_model] if naming_map else str(trained_model).split(".")[-1]
+    )
 
 
+def get_model_label(
+    trained_modelL: TrainedModels, naming_map: Dict[TrainedModels, str]
+) -> str:
+    return (
+        get_model_name(trained_modelL, naming_map)
+        + f" (epoch: {get_current_epoch(trained_modelL)})"
+    )
 
-def get_model_label(trained_modelL: TrainedModels, naming_map: Dict[TrainedModels, str])-> str:
-    return get_model_name(trained_modelL, naming_map) + f" (epoch: {get_current_epoch(trained_modelL)})" 
 
 def get_dataset_label(dataset, select_model):
     return dataset + f" (epoch: {get_current_epoch(select_model)})"

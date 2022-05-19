@@ -1,4 +1,5 @@
 import os
+from types import DynamicClassAttribute
 from typing import Dict, List, Tuple
 import torch
 import pickle
@@ -23,7 +24,54 @@ def get_data_from_metric_logger(loger: MetricLogger) -> Dict[str, float]:
 
     return train_data
 
+
 ###########################################################
+# def save_checkpoint(
+#     train_info: TrainingInfo,
+#     model: nn.Module,
+#     val_ar: float,
+#     val_ap: float,
+#     test_ar: float,
+#     test_ap: float,
+#     optim: Optimizer = None,
+# ) -> TrainingInfo:
+#     current_time_string = datetime.now().strftime("%m-%d-%Y %H-%M-%S")
+
+#     model_path = (
+#         (
+#             f"val_ar_{val_ar:.4f}_ap_{val_ap:.4f}_"
+#             + f"test_ar_{test_ar:.4f}_ap_{test_ap:.4f}_"
+#             + f"epoch{train_info.epoch}_{train_info.clinical_cond}Clincal_{current_time_string}"
+#             + f"_{train_info.model_setup.name}"
+#         )
+#         .replace(":", "_")
+#         .replace(".", "_")
+#     )
+
+#     train_info.final_model_path = model_path
+
+#     torch.save(
+#         model.state_dict(),
+#         os.path.join(os.path.join("trained_models", train_info.final_model_path)),
+#     )
+
+#     # Save optimizer if necessary.
+#     if optim:
+#         torch.save(
+#             optim.state_dict(),
+#             os.path.join(
+#                 os.path.join("trained_models", f"{train_info.final_model_path}_optim")
+#             ),
+#         )
+
+#     with open(
+#         os.path.join("training_records", f"{train_info.final_model_path }.pkl"), "wb",
+#     ) as train_info_f:
+#         pickle.dump(train_info, train_info_f)
+
+#     return train_info
+
+
 def save_checkpoint(
     train_info: TrainingInfo,
     model: nn.Module,
@@ -31,7 +79,8 @@ def save_checkpoint(
     val_ap: float,
     test_ar: float,
     test_ap: float,
-    optim: Optimizer = None,
+    optimizer: Optimizer = None,
+    dynamic_weight: nn.Module = None,
 ) -> TrainingInfo:
     current_time_string = datetime.now().strftime("%m-%d-%Y %H-%M-%S")
 
@@ -48,20 +97,22 @@ def save_checkpoint(
 
     train_info.final_model_path = model_path
 
+    saving_dict = {
+        "model_state_dict":model.state_dict()
+        
+    }
+    if optimizer:
+        saving_dict["optimizer_state_dict"] = optimizer.state_dict()
+
+    if dynamic_weight:
+        saving_dict["dynamic_weight_state_dict"] =dynamic_weight.state_dict()
+
     torch.save(
-        model.state_dict(),
+        saving_dict,
         os.path.join(os.path.join("trained_models", train_info.final_model_path)),
     )
 
-    # Save optimizer if necessary.
-    if optim:
-        torch.save(
-            optim.state_dict(),
-            os.path.join(
-                os.path.join("trained_models", f"{train_info.final_model_path}_optim")
-            ),
-        )
-
+    # saving the train_info.
     with open(
         os.path.join("training_records", f"{train_info.final_model_path }.pkl"), "wb",
     ) as train_info_f:
@@ -90,7 +141,7 @@ def check_best(
     test_coco: Dataset,
     iou_types: List[str],
     device: str,
-    score_thres: Dict[str, float]=None,
+    score_thres: Dict[str, float] = None,
 ) -> Tuple[float, float, TrainingInfo]:
 
     val_ar, val_ap = get_ar_ap(train_info.last_val_evaluator)
@@ -120,7 +171,7 @@ def check_best(
                 val_ap=val_ap,
                 test_ar=test_ar,
                 test_ap=test_ap,
-                optim=optim,
+                optimizer=optim,
             )
             train_info.best_ar_val_model_path = train_info.final_model_path
             train_info.best_val_ar = val_ar
@@ -135,7 +186,7 @@ def check_best(
                 val_ap=val_ap,
                 test_ar=test_ar,
                 test_ap=test_ap,
-                optim=optim,
+                optimizer=optim,
             )
             train_info.best_ap_val_model_path = train_info.final_model_path
             train_info.best_val_ap = val_ap
@@ -153,9 +204,9 @@ def end_train(
     last_val_ap: float,
     test_dataloader: DataLoader,
     device: str,
-    test_coco:Dataset,
+    test_coco: Dataset,
     iou_types: List[str],
-    score_thres:Dict[str, float] =None,
+    score_thres: Dict[str, float] = None,
 ) -> TrainingInfo:
     train_info.end_t = datetime.now()
     sec_took = (train_info.end_t - train_info.start_t).seconds
@@ -192,7 +243,7 @@ def end_train(
         val_ap=last_val_ap,
         test_ar=test_ar,
         test_ap=test_ap,
-        optim=optim,
+        optimizer=optim,
     )
 
     print_f.print_title(

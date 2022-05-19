@@ -98,11 +98,6 @@ def multimodal_maskrcnn_resnet_fpn(
     progress=True,
     num_classes=91,
     trainable_backbone_layers=None,
-    clinical_input_channels=32,
-    clinical_num_len=9,
-    clinical_conv_channels=256,
-    fuse_conv_channels=256,
-    use_clinical=True,
     # backbone_out_channels=64,
     **kwargs,
 ):
@@ -137,11 +132,6 @@ def multimodal_maskrcnn_resnet_fpn(
         setup,
         backbone,
         num_classes,
-        # clinical_input_channels=clinical_input_channels,
-        # clinical_num_len=clinical_num_len,
-        # clinical_conv_channels=clinical_conv_channels,
-        # fuse_conv_channels=fuse_conv_channels,
-        # use_clinical=use_clinical,
         **kwargs,
     )
 

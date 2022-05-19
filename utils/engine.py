@@ -33,6 +33,24 @@ def get_iou_types(model: nn.Module, setup: ModelSetup) -> List[str]:
     return iou_types
 
 
+def loss_multiplier( loss_dict, epoch = None):
+    # in the first 100 epochs, we can train the rpn first.
+    # if epoch and epoch < 10:
+    #     loss_dict["loss_classifier"] = loss_dict["loss_classifier"].detach()
+    #     loss_dict["loss_box_reg"]  = loss_dict["loss_box_reg"].detach()
+    #     loss_dict["loss_objectness"] *= 1
+    #     loss_dict["loss_rpn_box_reg"] *= 1
+    # else:
+    #     loss_dict["loss_classifier"] *= 1
+    #     loss_dict["loss_box_reg"] *= 1
+    #     loss_dict["loss_objectness"] *= 1
+    #     loss_dict["loss_rpn_box_reg"] *= 1
+    # loss_dict["loss_objectness"] = loss_dict["loss_objectness"].detach()
+    # loss_dict["loss_rpn_box_reg"]  = loss_dict["loss_rpn_box_reg"].detach()
+
+    return loss_dict
+
+
 def xami_train_one_epoch(
     model: nn.Module,
     optimizer: Optimizer,
@@ -45,6 +63,7 @@ def xami_train_one_epoch(
     score_thres: Dict[str, float] = None,
     evaluate_on_run=True,
     params_dict: Dict = None,
+    dynamic_loss_weight=None,
 ) -> Tuple[CocoEvaluator, detect_utils.MetricLogger]:
     model.train()
     metric_logger = detect_utils.MetricLogger(delimiter="  ")
@@ -71,7 +90,14 @@ def xami_train_one_epoch(
         data = data_loader.dataset.prepare_input_from_data(data, device)
         with torch.cuda.amp.autocast(enabled=False):
             loss_dict, outputs = model(*data[:-1], targets=data[-1])
-            losses = sum(loss for loss in loss_dict.values())
+            loss_dict = loss_multiplier(loss_dict,epoch)
+
+            if dynamic_loss_weight:
+                # loss_dict["loss_objectness"] *= 4
+                # loss_dict["loss_rpn_box_reg"] *= 2
+                losses = dynamic_loss_weight(loss_dict)
+            else:
+                losses = sum(loss for loss in loss_dict.values())
 
         # reduce losses over all GPUs for logging purposes
         loss_dict_reduced = detect_utils.reduce_dict(loss_dict)
@@ -150,6 +176,8 @@ def xami_evaluate(
             torch.cuda.synchronize()
         model_time = time.time()
         loss_dict, outputs = model(*data[:-1], targets=data[-1])
+        loss_dict = loss_multiplier(loss_dict)
+
         loss_dict_reduced = detect_utils.reduce_dict(loss_dict)
         losses_reduced = sum(loss for loss in loss_dict_reduced.values())
 
