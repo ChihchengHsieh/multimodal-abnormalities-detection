@@ -2159,6 +2159,16 @@ Not using pretrained MaksRCNN model.
 <img width="518" alt="image" src="https://user-images.githubusercontent.com/37566901/169186925-9de4b5b8-01a4-46af-ad54-452576c7c55b.png">
 
 
+
+<!-- =======================================For Training [CXR_Clinical]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='CXR_Clinical', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='resnet50', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=256, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler=None, reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=10, reduceLROnPlateau_full_stop=False, multiStepLR_milestones=[100], multiStepLR_gamma=0.1, representation_size=32, mask_hidden_layers=256, using_fpn=True, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=64, clinical_num_len=9, clinical_conv_channels=256, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=0, fusion_strategy='add', fusion_residule=False)
+===========================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_3787_ap_0_2241_test_ar_0_2963_ap_0_1684_epoch41_WithClincal_05-19-2022 13-52-41_CXR_Clinical]
+Best AR validation model has been saved to: [val_ar_0_5024_ap_0_2223_test_ar_0_4142_ap_0_2391_epoch46_WithClincal_05-19-2022 14-02-15_CXR_Clinical]
+The final model has been saved to: [val_ar_0_5024_ap_0_2223_test_ar_0_4142_ap_0_2391_epoch46_WithClincal_05-19-2022 14-02-15_CXR_Clinical]
+ -->
+
 ## Attemps of evaluation:
 
 Q: When we're trying to evaluate the model, the CXR + clinical model does has a better performance on the validation and test sets. However, when we actually print out the bounding boxes, the CXR model seems to make more sense.
