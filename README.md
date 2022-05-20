@@ -2201,6 +2201,73 @@ Not using pretrained MaksRCNN model.
 <img width="516" alt="image" src="https://user-images.githubusercontent.com/37566901/169377128-cdd8372e-6228-42e3-a2ad-e4521a2c2658.png">
 <img width="517" alt="image" src="https://user-images.githubusercontent.com/37566901/169377158-a12774ac-81ab-4d95-92a0-d488763bbc50.png">
 
+# CXR+Clinical model testing
+## Only using the clinical in box pred. (0.2058)
+```
+========================================For Training [CXR_Clinical]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='CXR_Clinical', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='resnet50', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=512, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler=None, reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=10, reduceLROnPlateau_full_stop=False, multiStepLR_milestones=[100], multiStepLR_gamma=0.1, representation_size=256, mask_hidden_layers=256, using_fpn=True, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=256, clinical_expand_conv_channels=256, clinical_num_len=9, clinical_conv_channels=256, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=0, spatialise_clinical=False, fusion_strategy='add', fusion_residule=False, gt_in_train_till=30)
+===========================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_5389_ap_0_2945_test_ar_0_4126_ap_0_2058_epoch24_WithClincal_05-20-2022 16-54-44_CXR_Clinical]
+Best AR validation model has been saved to: [val_ar_0_5667_ap_0_2700_test_ar_0_4710_ap_0_2000_epoch38_WithClincal_05-20-2022 17-19-09_CXR_Clinical]
+The final model has been saved to: [val_ar_0_3511_ap_0_2119_test_ar_0_3119_ap_0_2048_epoch100_WithClincal_05-20-2022 19-05-07_CXR_Clinical]
+
+===========================================================================================================
+Load custom model
+Using ResNet as backbone
+Using pretrained backbone. resnet50
+Using ResNet as clinical backbone
+Not using pretrained MaksRCNN model.
+[model]: 57,543,579
+[model.backbone]: 26,799,296
+[model.rpn]: 593,935
+[model.roi_heads]: 3,350,558
+[model.roi_heads.box_head]: 3,342,848
+[model.roi_heads.box_head.fc6]: 3,277,056
+[model.roi_heads.box_head.fc7]: 65,792
+[model.roi_heads.box_predictor]: 7,710
+[model.clinical_convs]: 26,799,296
+```
+<img width="503" alt="image" src="https://user-images.githubusercontent.com/37566901/169541438-4aaa866a-7d4e-487c-9322-15a13f827ada.png">
+<img width="516" alt="image" src="https://user-images.githubusercontent.com/37566901/169541468-bd24362c-f144-45da-b828-60bcc349e8ed.png">
+<img width="520" alt="image" src="https://user-images.githubusercontent.com/37566901/169541487-2f984f7c-6f42-40ec-a83f-5ee097c14191.png">
+
+## using both box pred and spatialisation. (0.2585)
+```
+========================================For Training [CXR_Clinical]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='CXR_Clinical', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='resnet50', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=512, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler=None, reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=10, reduceLROnPlateau_full_stop=False, multiStepLR_milestones=[100], multiStepLR_gamma=0.1, representation_size=256, mask_hidden_layers=256, using_fpn=True, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=256, clinical_expand_conv_channels=256, clinical_num_len=9, clinical_conv_channels=256, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=0, spatialise_clinical=True, fusion_strategy='add', fusion_residule=False, gt_in_train_till=30)
+===========================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_5558_ap_0_3427_test_ar_0_4820_ap_0_2448_epoch77_WithClincal_05-20-2022 22-28-30_CXR_Clinical]
+Best AR validation model has been saved to: [val_ar_0_6366_ap_0_2947_test_ar_0_4960_ap_0_2585_epoch38_WithClincal_05-20-2022 20-47-26_CXR_Clinical]
+The final model has been saved to: [val_ar_0_3336_ap_0_2024_test_ar_0_3826_ap_0_2336_epoch100_WithClincal_05-20-2022 23-30-00_CXR_Clinical]
+
+===========================================================================================================
+Load custom model
+Using ResNet as backbone
+Using pretrained backbone. resnet50
+Using ResNet as clinical backbone
+Not using pretrained MaksRCNN model.
+[model]: 64,641,444
+[model.backbone]: 26,799,296
+[model.rpn]: 593,935
+[model.roi_heads]: 3,350,558
+[model.roi_heads.box_head]: 3,342,848
+[model.roi_heads.box_head.fc6]: 3,277,056
+[model.roi_heads.box_head.fc7]: 65,792
+[model.roi_heads.box_predictor]: 7,710
+[model.clinical_convs]: 26,799,296
+```
+<img width="493" alt="image" src="https://user-images.githubusercontent.com/37566901/169541632-2a933013-dee1-4145-9a3f-49d720664380.png">
+<img width="520" alt="image" src="https://user-images.githubusercontent.com/37566901/169541660-0feeaee3-0ba8-4c9b-9978-56d8062b0ca0.png">
+<img width="519" alt="image" src="https://user-images.githubusercontent.com/37566901/169541684-65151fb0-db90-490a-ac8a-0fb7cc08a397.png">
+
+## using only spatialisation.
+
+## using nothing. 
+
+### Improvement attempts,
+
 ## Attemps of evaluation:
 
 Q: When we're trying to evaluate the model, the CXR + clinical model does has a better performance on the validation and test sets. However, when we actually print out the bounding boxes, the CXR model seems to make more sense.
