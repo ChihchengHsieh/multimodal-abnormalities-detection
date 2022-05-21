@@ -2327,6 +2327,35 @@ Not using pretrained MaksRCNN model.
 <img width="518" alt="image" src="https://user-images.githubusercontent.com/37566901/169630178-79bb8145-04a0-47ec-8d0a-a3371bb2b131.png">
 
 
+
+```
+========================================For Training [CXR]========================================
+ModelSetup(use_clinical=False, use_custom_model=True, use_early_stop_model=True, name='CXR', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='resnet50', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=512, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler=None, reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=10, reduceLROnPlateau_full_stop=False, multiStepLR_milestones=[100], multiStepLR_gamma=0.1, representation_size=256, mask_hidden_layers=256, using_fpn=True, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=256, clinical_expand_conv_channels=256, clinical_num_len=9, clinical_conv_channels=256, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=0, spatialise_clinical=False, add_clinical_to_roi_heads=False, fusion_strategy='add', fusion_residule=False, gt_in_train_till=30)
+==================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_5338_ap_0_2990_test_ar_0_4015_ap_0_1800_epoch28_WithoutClincal_05-21-2022 12-53-58_CXR]
+Best AR validation model has been saved to: [val_ar_0_5767_ap_0_2500_test_ar_0_5245_ap_0_2210_epoch39_WithoutClincal_05-21-2022 13-13-24_CXR]
+The final model has been saved to: [val_ar_0_3817_ap_0_2250_test_ar_0_3467_ap_0_2117_epoch100_WithoutClincal_05-21-2022 14-59-07_CXR]
+
+==================================================================================================
+Load custom model
+Using ResNet as backbone
+Using pretrained backbone. resnet50
+Not using pretrained MaksRCNN model.
+[model]: 30,678,253
+[model.backbone]: 26,799,296
+[model.rpn]: 593,935
+[model.roi_heads]: 3,285,022
+[model.roi_heads.box_head]: 3,277,312
+[model.roi_heads.box_head.fc6]: 3,211,520
+[model.roi_heads.box_head.fc7]: 65,792
+[model.roi_heads.box_predictor]: 7,710
+```
+
+<img width="497" alt="image" src="https://user-images.githubusercontent.com/37566901/169639875-ebdd1447-4f2b-429f-8acf-c976fff70fb4.png">
+<img width="519" alt="image" src="https://user-images.githubusercontent.com/37566901/169639881-37253cbf-b0cd-4388-8d89-37baccdff3dc.png">
+<img width="519" alt="image" src="https://user-images.githubusercontent.com/37566901/169639887-7aeb272e-d4ab-4750-b6d6-1b89742c1430.png">
+
 ### Improvement attempts,
 
 ## Attemps of evaluation:
