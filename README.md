@@ -2471,7 +2471,63 @@ Not using pretrained MaksRCNN model.
 [model.roi_heads.box_predictor]: 7,710
 ```
 
-## 
+# Newer attempts
+
+### CXR_Clinical_roi_heads_spatialisation (0.3474, 0.1862)
+
+```
+========================================For Training [CXR_Clinical_roi_heads_spatialisation]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='CXR_Clinical_roi_heads_spatialisation', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='resnet50', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=512, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=999, reduceLROnPlateau_full_stop=True, multiStepLR_milestones=[100], multiStepLR_gamma=0.1, representation_size=256, mask_hidden_layers=256, using_fpn=True, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=512, clinical_expand_conv_channels=256, clinical_num_len=9, clinical_conv_channels=256, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=0, spatialise_clinical=True, add_clinical_to_roi_heads=True, fusion_strategy='add', fusion_residule=False, gt_in_train_till=0)
+====================================================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_4536_ap_0_3474_test_ar_0_2630_ap_0_1862_epoch61_WithClincal_05-23-2022 04-51-20_CXR_Clinical_roi_heads_spatialisation]
+Best AR validation model has been saved to: [val_ar_0_5623_ap_0_3135_test_ar_0_3942_ap_0_1994_epoch35_WithClincal_05-23-2022 03-38-21_CXR_Clinical_roi_heads_spatialisation]
+The final model has been saved to: [val_ar_0_3982_ap_0_2418_test_ar_0_2669_ap_0_1925_epoch100_WithClincal_05-23-2022 06-40-14_CXR_Clinical_roi_heads_spatialisation]
+
+====================================================================================================================================
+Load custom model
+Using ResNet as backbone
+Using pretrained backbone. resnet50
+Using ResNet as clinical backbone
+Not using pretrained MaksRCNN model.
+[model]: 64,969,636
+[model.backbone]: 26,799,296
+[model.rpn]: 593,935
+[model.roi_heads]: 3,416,094
+[model.roi_heads.box_head]: 3,408,384
+[model.roi_heads.box_head.fc6]: 3,342,592
+[model.roi_heads.box_head.fc7]: 65,792
+[model.roi_heads.box_predictor]: 7,710
+[model.clinical_convs]: 26,799,296
+```
+
+## CXR_Clinical_roi_heads (0.3146, 0.2546)
+
+```
+========================================For Training [CXR_Clinical_roi_heads]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='CXR_Clinical_roi_heads', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='resnet50', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='unified', image_size=512, backbone_out_channels=16, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=999, reduceLROnPlateau_full_stop=True, multiStepLR_milestones=[100], multiStepLR_gamma=0.1, representation_size=256, mask_hidden_layers=256, using_fpn=True, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=512, clinical_expand_conv_channels=256, clinical_num_len=9, clinical_conv_channels=256, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=0, spatialise_clinical=False, add_clinical_to_roi_heads=True, fusion_strategy='add', fusion_residule=False, gt_in_train_till=0)
+=====================================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_6366_ap_0_3146_test_ar_0_5370_ap_0_2546_epoch38_WithClincal_05-23-2022 07-57-51_CXR_Clinical_roi_heads]
+Best AR validation model has been saved to: [val_ar_0_6366_ap_0_3146_test_ar_0_5370_ap_0_2546_epoch38_WithClincal_05-23-2022 07-57-50_CXR_Clinical_roi_heads]
+The final model has been saved to: [val_ar_0_4022_ap_0_1978_test_ar_0_3231_ap_0_1923_epoch100_WithClincal_05-23-2022 09-52-28_CXR_Clinical_roi_heads]
+
+=====================================================================================================================
+Load custom model
+Using ResNet as backbone
+Using pretrained backbone. resnet50
+Using ResNet as clinical backbone
+Not using pretrained MaksRCNN model.
+[model]: 57,609,627
+[model.backbone]: 26,799,296
+[model.rpn]: 593,935
+[model.roi_heads]: 3,416,094
+[model.roi_heads.box_head]: 3,408,384
+[model.roi_heads.box_head.fc6]: 3,342,592
+[model.roi_heads.box_head.fc7]: 65,792
+[model.roi_heads.box_predictor]: 7,710
+[model.clinical_convs]: 26,799,296
+```
 
 
 ## CXR_Clinical_spatialisation
