@@ -2530,9 +2530,9 @@ Not using pretrained MaksRCNN model.
 ```
 
 
-# Large model 
+# Small model 
 
-## MobileNet v3
+## MobileNet v3 (0.1911, 0.3168)
 ```
 ========================================For Training [CXR_Clinical_roi_heads_spatialisation]========================================
 ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='CXR_Clinical_roi_heads_spatialisation', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='normal', image_size=512, backbone_out_channels=64, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=999, reduceLROnPlateau_full_stop=True, multiStepLR_milestones=100, multiStepLR_gamma=0.1, representation_size=64, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=64, clinical_expand_conv_channels=64, clinical_num_len=9, clinical_conv_channels=64, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=0, spatialise_clinical=True, add_clinical_to_roi_heads=True, fusion_strategy='add', fusion_residule=False, gt_in_train_till=999)
@@ -2562,7 +2562,7 @@ Using pretrained backbone. mobilenet_v3
 <img width="517" alt="image" src="https://user-images.githubusercontent.com/37566901/169771765-a8471986-6dbd-42d0-aa99-7ca7fb8be376.png">
 <img width="519" alt="image" src="https://user-images.githubusercontent.com/37566901/169771788-2266fdd2-6551-418c-9044-55659ef887de.png">
 
-## ResNet50
+## ResNet50 (0.1971, 0.2651)
 ```
 ========================================For Training [CXR_Clinical_roi_heads_spatialisation]========================================
 ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='CXR_Clinical_roi_heads_spatialisation', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='resnet50', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='normal', image_size=512, backbone_out_channels=64, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=999, reduceLROnPlateau_full_stop=True, multiStepLR_milestones=100, multiStepLR_gamma=0.1, representation_size=64, mask_hidden_layers=256, using_fpn=True, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=64, clinical_expand_conv_channels=64, clinical_num_len=9, clinical_conv_channels=64, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=0, spatialise_clinical=True, add_clinical_to_roi_heads=True, fusion_strategy='add', fusion_residule=False, gt_in_train_till=999)
@@ -2592,6 +2592,74 @@ Not using pretrained MaksRCNN model.
 <img width="501" alt="image" src="https://user-images.githubusercontent.com/37566901/169771867-b25003f7-3ff5-4b9c-b8d1-dab0df695a44.png">
 <img width="516" alt="image" src="https://user-images.githubusercontent.com/37566901/169771901-462a7995-d47a-4ce9-9f1c-78bdd4da460c.png">
 <img width="519" alt="image" src="https://user-images.githubusercontent.com/37566901/169771925-74e91ce8-4bca-4200-a837-400c981462d6.png">
+
+
+# Large model
+
+
+## mobilenet_v3 (0.2218, 0.2661)
+```
+========================================For Training [CXR_Clinical_roi_heads_spatialisation]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='CXR_Clinical_roi_heads_spatialisation', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='normal', image_size=512, backbone_out_channels=256, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=999, reduceLROnPlateau_full_stop=True, multiStepLR_milestones=100, multiStepLR_gamma=0.1, representation_size=256, mask_hidden_layers=256, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=256, clinical_expand_conv_channels=256, clinical_num_len=9, clinical_conv_channels=256, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=0, spatialise_clinical=True, add_clinical_to_roi_heads=True, fusion_strategy='add', fusion_residule=False, gt_in_train_till=999)
+====================================================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_4209_ap_0_2218_test_ar_0_4825_ap_0_2661_epoch46_WithClincal_05-23-2022 20-29-03_CXR_Clinical_roi_heads_spatialisation]
+Best AR validation model has been saved to: [val_ar_0_6008_ap_0_1958_test_ar_0_6498_ap_0_2531_epoch44_WithClincal_05-23-2022 20-24-17_CXR_Clinical_roi_heads_spatialisation]
+The final model has been saved to: [val_ar_0_3393_ap_0_1440_test_ar_0_3933_ap_0_1990_epoch100_WithClincal_05-23-2022 22-32-50_CXR_Clinical_roi_heads_spatialisation]
+
+====================================================================================================================================
+Load custom model
+Using pretrained backbone. mobilenet_v3
+Using pretrained backbone. mobilenet_v3
+[model]: 15,567,008
+[model.backbone]: 2,254,368
+[model.rpn]: 609,355
+[model.roi_heads]: 3,350,558
+[model.roi_heads.box_head]: 3,342,848
+[model.roi_heads.box_head.fc6]: 3,277,056
+[model.roi_heads.box_head.fc7]: 65,792
+[model.roi_heads.box_predictor]: 7,710
+[model.clinical_convs]: 2,254,368
+[model.fuse_convs]: 0
+```
+<img width="499" alt="image" src="https://user-images.githubusercontent.com/37566901/169925078-a5b6d5be-597f-4142-8b3c-2b0503398e5c.png">
+<img width="520" alt="image" src="https://user-images.githubusercontent.com/37566901/169925091-9ccd396d-c31c-4d97-b67c-64c6a686a8e5.png">
+<img width="518" alt="image" src="https://user-images.githubusercontent.com/37566901/169925102-4b77cbc2-9674-4831-a247-2d4a6d5f1ece.png">
+
+
+
+## ResNet50 (0.1710, 0.2330)
+```
+========================================For Training [CXR_Clinical_roi_heads_spatialisation]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='CXR_Clinical_roi_heads_spatialisation', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='resnet50', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='normal', image_size=512, backbone_out_channels=256, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=999, reduceLROnPlateau_full_stop=True, multiStepLR_milestones=100, multiStepLR_gamma=0.1, representation_size=256, mask_hidden_layers=256, using_fpn=True, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=256, clinical_expand_conv_channels=256, clinical_num_len=9, clinical_conv_channels=256, fuse_conv_channels=32, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=0, spatialise_clinical=True, add_clinical_to_roi_heads=True, fusion_strategy='add', fusion_residule=False, gt_in_train_till=999)
+====================================================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_5086_ap_0_2506_test_ar_0_5187_ap_0_2209_epoch44_WithClincal_05-24-2022 00-46-48_CXR_Clinical_roi_heads_spatialisation]
+Best AR validation model has been saved to: [val_ar_0_5407_ap_0_1710_test_ar_0_5937_ap_0_2330_epoch72_WithClincal_05-24-2022 02-07-53_CXR_Clinical_roi_heads_spatialisation]
+The final model has been saved to: [val_ar_0_3339_ap_0_1738_test_ar_0_3111_ap_0_1893_epoch100_WithClincal_05-24-2022 03-28-36_CXR_Clinical_roi_heads_spatialisation]
+
+====================================================================================================================================
+Load custom model
+Using ResNet as backbone
+Using pretrained backbone. resnet50
+Using ResNet as clinical backbone
+Not using pretrained MaksRCNN model.
+[model]: 64,641,444
+[model.backbone]: 26,799,296
+[model.rpn]: 593,935
+[model.roi_heads]: 3,350,558
+[model.roi_heads.box_head]: 3,342,848
+[model.roi_heads.box_head.fc6]: 3,277,056
+[model.roi_heads.box_head.fc7]: 65,792
+[model.roi_heads.box_predictor]: 7,710
+[model.clinical_convs]: 26,799,296
+```
+
+<img width="493" alt="image" src="https://user-images.githubusercontent.com/37566901/169925136-1e8dbc0d-20f9-41ec-8ed8-0308c7daf35e.png">
+<img width="515" alt="image" src="https://user-images.githubusercontent.com/37566901/169925144-7e6b3243-b041-4749-9f73-7ae58215952b.png">
+<img width="519" alt="image" src="https://user-images.githubusercontent.com/37566901/169925154-0ecfef7c-b9ae-4c9f-ab31-426081d1e5e8.png">
+
+
 
 ### Improvement attempts,
 
