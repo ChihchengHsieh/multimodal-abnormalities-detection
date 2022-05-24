@@ -2686,6 +2686,55 @@ Using pretrained backbone. mobilenet_v3
 <img width="346" alt="image" src="https://user-images.githubusercontent.com/37566901/169956612-c1f7a28e-f3aa-4e34-b91c-67440de8e2f3.png">
 <img width="346" alt="image" src="https://user-images.githubusercontent.com/37566901/169956635-bf97236a-f8e9-40b9-9170-937681c42437.png">
 
+# Ablation:
+
+## CXR_Clinical_fusion1 (0.2017, 0.2767)
+```
+========================================For Training [CXR_Clinical_fusion1]========================================
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='CXR_Clinical_fusion1', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='normal', image_size=512, backbone_out_channels=64, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=999, reduceLROnPlateau_full_stop=True, multiStepLR_milestones=100, multiStepLR_gamma=0.1, representation_size=64, mask_hidden_layers=64, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=64, clinical_expand_conv_channels=64, clinical_num_len=9, clinical_conv_channels=64, fuse_conv_channels=64, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=0, spatialise_clinical=True, add_clinical_to_roi_heads=False, fusion_strategy='add', fusion_residule=False, gt_in_train_till=999)
+===================================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_4854_ap_0_2239_test_ar_0_5159_ap_0_2580_epoch44_WithClincal_05-25-2022 01-48-27_CXR_Clinical_fusion1]
+Best AR validation model has been saved to: [val_ar_0_5353_ap_0_2017_test_ar_0_6190_ap_0_2767_epoch45_WithClincal_05-25-2022 01-50-35_CXR_Clinical_fusion1]
+The final model has been saved to: [val_ar_0_3959_ap_0_1863_test_ar_0_3997_ap_0_1865_epoch100_WithClincal_05-25-2022 03-32-06_CXR_Clinical_fusion1]
+
+===================================================================================================================
+Load custom model
+Using pretrained backbone. mobilenet_v3
+Using pretrained backbone. mobilenet_v3
+[model]: 3,213,856
+[model.backbone]: 1,258,848
+[model.rpn]: 41,803
+[model.roi_heads]: 206,878
+[model.roi_heads.box_head]: 204,928
+[model.roi_heads.box_head.fc6]: 200,768
+[model.roi_heads.box_head.fc7]: 4,160
+[model.roi_heads.box_predictor]: 1,950
+[model.clinical_convs]: 1,258,848
+[model.fuse_convs]: 0
+```
+
+## CXR_Clinical_fusion2 (0.2274, 0.2175)
+
+```
+========================================For Training [CXR_Clinical_fusion2]======================================== 
+ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='CXR_Clinical_fusion2', best_ar_val_model_path=None, best_ap_val_model_path=None, final_model_path=None, backbone='mobilenet_v3', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='normal', image_size=512, backbone_out_channels=64, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=999, reduceLROnPlateau_full_stop=True, multiStepLR_milestones=100, multiStepLR_gamma=0.1, representation_size=64, mask_hidden_layers=64, using_fpn=False, use_mask=False, clinical_expand_dropout_rate=0, clinical_conv_dropout_rate=0, clinical_input_channels=64, clinical_expand_conv_channels=64, clinical_num_len=9, clinical_conv_channels=64, fuse_conv_channels=64, fuse_dropout_rate=0, box_head_dropout_rate=0, fuse_depth=0, spatialise_clinical=False, add_clinical_to_roi_heads=True, fusion_strategy='add', fusion_residule=False, gt_in_train_till=999) =================================================================================================================== 
+Best AP validation model has been saved to: [val_ar_0_4654_ap_0_2274_test_ar_0_4886_ap_0_2157_epoch85_WithClincal_05-25-2022 06-02-35_CXR_Clinical_fusion2] 
+Best AR validation model has been saved to: [val_ar_0_5760_ap_0_1744_test_ar_0_5622_ap_0_1990_epoch49_WithClincal_05-25-2022 05-01-33_CXR_Clinical_fusion2] 
+The final model has been saved to: [val_ar_0_2985_ap_0_1360_test_ar_0_2752_ap_0_1522_epoch100_WithClincal_05-25-2022 06-27-43_CXR_Clinical_fusion2] =================================================================================================================== 
+Load custom model Using pretrained backbone. 
+mobilenet_v3 Using pretrained backbone.
+mobilenet_v3 
+[model]: 2,770,583 
+[model.backbone]: 1,258,848 
+[model.rpn]: 41,803 
+[model.roi_heads]: 210,974 
+[model.roi_heads.box_head]: 209,024 
+[model.roi_heads.box_head.fc6]: 204,864 
+[model.roi_heads.box_head.fc7]: 4,160 
+[model.roi_heads.box_predictor]: 1,950 
+[model.clinical_convs]: 1,258,848
+```
 
 ### Improvement attempts,
 
