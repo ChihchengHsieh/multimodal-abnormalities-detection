@@ -1,4 +1,6 @@
 from time import time
+from tkinter import EXCEPTION
+from setuptools import setup
 import torch
 import warnings
 import torchvision
@@ -53,11 +55,19 @@ class XAMITwoMLPHead(nn.Module):
         representation_size (int): size of the intermediate representation
     """
 
-    def __init__(self, in_channels, representation_size, dropout_rate=0):
+    def __init__(
+        self, setup: ModelSetup, in_channels, representation_size, dropout_rate=0
+    ):
         super().__init__()
 
+        self.setup = setup
         self.fc6 = nn.Sequential(
-            nn.Linear(in_channels, representation_size),
+            nn.Linear(
+                in_channels + setup.clinical_input_channels
+                if setup.add_clinical_to_roi_heads
+                else in_channels,
+                representation_size,
+            ),
             nn.Dropout2d(p=dropout_rate, inplace=False),
         )
         self.fc7 = nn.Sequential(
@@ -65,8 +75,14 @@ class XAMITwoMLPHead(nn.Module):
             nn.Dropout2d(p=dropout_rate, inplace=False),
         )
 
-    def forward(self, x):
+    def forward(self, x, clinical_input=None):
+        self.x = x 
         x = x.flatten(start_dim=1)
+
+        if self.setup.add_clinical_to_roi_heads:
+            assert not clinical_input is None, "You design the model to attach the clinical data in the box_pred; however, no clincal input is being provided."
+            self.clinical_input = clinical_input
+            x = torch.concat([ x, clinical_input], axis=1)
 
         x = F.relu(self.fc6(x))
         x = F.relu(self.fc7(x))
@@ -387,6 +403,7 @@ class XAMIRoIHeads(nn.Module):
 
     def __init__(
         self,
+        setup: ModelSetup,
         box_roi_pool,
         box_head,
         box_predictor,
@@ -407,10 +424,12 @@ class XAMIRoIHeads(nn.Module):
         keypoint_roi_pool=None,
         keypoint_head=None,
         keypoint_predictor=None,
+        use_gt_in_train=True,
     ):
         super().__init__()
 
         self.box_similarity = box_ops.box_iou
+        self.setup = setup
         # assign ground-truth boxes for each proposal
         self.proposal_matcher = det_utils.Matcher(
             fg_iou_thresh, bg_iou_thresh, allow_low_quality_matches=False
@@ -427,6 +446,7 @@ class XAMIRoIHeads(nn.Module):
         self.box_roi_pool = box_roi_pool
         self.box_head = box_head
         self.box_predictor = box_predictor
+        self.use_gt_in_train = use_gt_in_train
 
         self.score_thresh = score_thresh
         self.nms_thresh = nms_thresh
@@ -546,14 +566,14 @@ class XAMIRoIHeads(nn.Module):
         gt_labels = [t["labels"] for t in targets]
 
         # append ground-truth bboxes to propos (facilitate the training.)
-        if self.training:
+        if self.training and self.use_gt_in_train:
             proposals = self.add_gt_proposals(proposals, gt_boxes)
 
         # get matching gt indices for each proposal
         matched_idxs, labels = self.assign_targets_to_proposals(
             proposals, gt_boxes, gt_labels
         )
-        # sample a fixed proportion of positive-negative proposals
+        # sample a f proportion of positive-negative proposals
         sampled_inds = self.subsample(labels)
         matched_gt_boxes = []
         num_images = len(proposals)
@@ -638,6 +658,7 @@ class XAMIRoIHeads(nn.Module):
         proposals,  # type: List[Tensor]
         image_shapes,  # type: List[Tuple[int, int]]
         targets=None,  # type: Optional[List[Dict[str, Tensor]]]
+        clinical_input=None,
     ):
         # type: (...) -> Tuple[List[Dict[str, Tensor]], Dict[str, Tensor]]
         """
@@ -675,8 +696,19 @@ class XAMIRoIHeads(nn.Module):
             matched_idxs = None
 
         box_features = self.box_roi_pool(features, proposals, image_shapes)
-        box_features = self.box_head(box_features)
+        self.proposals = proposals 
+
+        if self.setup.add_clinical_to_roi_heads:
+            # you will expect to receive the clinical_input
+            assert not clinical_input is None, "You design the model to attach the clinical data in the roi_head; however, no clincal input is being provided."
+            proposals_clinical_input = torch.concat([clinical_input[i].repeat(p.shape[0], 1) for i, p in enumerate(proposals)], axis=0)
+            box_features = self.box_head(box_features, proposals_clinical_input)
+        else:
+            box_features = self.box_head(box_features)
+        self.head_out = box_features
+
         class_logits, box_regression = self.box_predictor(box_features)
+        self.pred_out_logits,  self.pred_out_reg = class_logits, box_regression
 
         result: List[Dict[str, torch.Tensor]] = []
         losses = {}
@@ -691,6 +723,8 @@ class XAMIRoIHeads(nn.Module):
         pred_boxes, pred_scores, pred_labels = self.postprocess_detections(
             class_logits, box_regression, proposals, image_shapes
         )
+
+        self.pred_boxes = pred_boxes
 
         num_images = len(pred_boxes)
 
@@ -787,6 +821,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
         # fuse_depth=4,
         # dropout_rate=0,
         # image_size=256,
+        clinical_backbone=None,
     ):
 
         super(MultimodalGeneralizedRCNN, self).__init__()
@@ -806,12 +841,14 @@ class MultimodalGeneralizedRCNN(nn.Module):
         # self.fuse_conv_channels = fuse_conv_channels
         # self.use_clinical = use_clinical
         # self.fuse_depth = fuse_depth
+        self.clinical_convs = clinical_backbone
         self.setup = setup
 
-        if self.setup.using_fpn:
-            assert (
-                self.backbone.out_channels == self.setup.clinical_conv_channels
-            ), f"backbone channel [{self.backbone.out_channels}] has to be the same as clinical_conv_channels [{self.setup.clinical_conv_channels}]"
+        # because the clinical conv is made by the same backbone as img, so we don't need this assertion anymore.
+        # if self.setup.using_fpn:
+        #     assert (
+        #         self.backbone.out_channels == self.setup.clinical_conv_channels
+        #     ), f"backbone channel [{self.backbone.out_channels}] has to be the same as clinical_conv_channels [{self.setup.clinical_conv_channels}]"
 
         example_img_features = self.backbone(
             self.transform([torch.ones(3, 2048, 2048)])[0].tensors
@@ -835,65 +872,136 @@ class MultimodalGeneralizedRCNN(nn.Module):
             2, self.setup.clinical_input_channels - self.setup.clinical_num_len
         )
 
-        expand_times = math.log((self.setup.image_size), 2)
+        if self.setup.spatialise_clinical:
 
-        assert (
-            expand_times.is_integer(),
-            f"The expand_times should be interger but found {expand_times}",
-        )
+            expand_times = math.log((self.setup.image_size), 2)
 
-        expand_conv_modules = list(
+            assert (
+                expand_times.is_integer(),
+                f"The expand_times should be interger but found {expand_times}",
+            )
+
+            expand_conv_modules = list(
+                itertools.chain.from_iterable(
+                    [
+                        [
+                            nn.ConvTranspose2d(
+                                (
+                                    self.setup.clinical_input_channels
+                                    if i == 0
+                                    else self.setup.clinical_expand_conv_channels
+                                ),
+                                (self.setup.clinical_expand_conv_channels),
+                                kernel_size=2,
+                                stride=2,
+                            ),
+                            nn.BatchNorm2d((self.setup.clinical_expand_conv_channels),),
+                            nn.ReLU(inplace=False),
+                            nn.Conv2d(
+                                (self.setup.clinical_expand_conv_channels),
+                                (
+                                    3
+                                    if i == int(expand_times) - 1
+                                    else self.setup.clinical_expand_conv_channels
+                                ),
+                                kernel_size=3,
+                                stride=1,
+                                padding=1,
+                            ),
+                            nn.BatchNorm2d(
+                                (
+                                    3
+                                    if i == int(expand_times) - 1
+                                    else self.setup.clinical_expand_conv_channels
+                                ),
+                            ),
+                        ]
+                        + ([] if i == expand_times - 1 else [nn.ReLU(inplace=False),])
+                        for i in range(
+                            int(expand_times)
+                        )  # expand to the same as image size.
+                    ]
+                )
+            )
+
+            self.clinical_expand_conv = nn.Sequential(*expand_conv_modules,)
+
+            if self.setup.using_fpn:
+                self._build_fpn_fuse_convs()
+            else:
+                self._build_normal_fuse_convs()
+
+    def _build_fpn_fuse_convs(self,):
+        if self.setup.fuse_depth == 0:
+            return
+
+        self.clinical_convs = nn.ModuleDict({})
+        self.fuse_convs = nn.ModuleDict({})
+        for i, key in enumerate(self.feature_keys):
+            network = [
+                nn.Conv2d(
+                    (
+                        self.get_fuse_input_channel()
+                        if i == 0
+                        else self.setup.clinical_conv_channels
+                    ),
+                    (
+                        self.backbone.out_channels
+                        if i == (self.setup.fuse_depth - 1)
+                        else self.setup.clinical_conv_channels
+                    ),
+                    kernel_size=3,
+                    stride=2,
+                    padding=1,
+                ),
+                nn.BatchNorm2d(
+                    (
+                        self.backbone.out_channels
+                        if i == (self.setup.fuse_depth - 1)
+                        else self.setup.clinical_conv_channels
+                    )
+                ),
+                # nn.ReLU(inplace=False),
+            ]
+            self.fuse_convs[key] = nn.Sequential(*network)
+
+    def _build_normal_fuse_convs(self,):
+
+        fuse_convs_modules = list(
             itertools.chain.from_iterable(
                 [
                     [
-                        nn.ConvTranspose2d(
+                        nn.Conv2d(
                             (
-                                self.setup.clinical_input_channels
+                                self.get_fuse_input_channel()
                                 if i == 0
                                 else self.setup.clinical_conv_channels
                             ),
-                            self.setup.clinical_conv_channels,
-                            kernel_size=2,
-                            stride=2,
-                        ),
-                        nn.BatchNorm2d(self.setup.clinical_conv_channels,),
-                        nn.ReLU(inplace=False),
-                        nn.Dropout2d(
-                            p=self.setup.clinical_expand_dropout_rate, inplace=False,
-                        ),
-                        nn.Conv2d(
-                            self.setup.clinical_conv_channels,
-                            self.setup.clinical_conv_channels,
+                            (
+                                self.backbone.out_channels
+                                if i == (self.setup.fuse_depth - 1)
+                                else self.setup.clinical_conv_channels
+                            ),
                             kernel_size=3,
-                            stride=1,
+                            stride=2,
                             padding=1,
                         ),
-                        nn.BatchNorm2d(self.setup.clinical_conv_channels,),
+                        nn.BatchNorm2d(
+                            (
+                                self.backbone.out_channels
+                                if i == (self.setup.fuse_depth - 1)
+                                else self.setup.clinical_conv_channels
+                            )
+                        ),
+                        nn.ReLU(inplace=False),
+                        nn.Dropout2d(p=self.setup.fuse_dropout_rate, inplace=False,),
                     ]
-                    + (
-                        []
-                        if i == expand_times - 1
-                        else [
-                            nn.ReLU(inplace=False),
-                            nn.Dropout2d(
-                                p=self.setup.clinical_expand_dropout_rate,
-                                inplace=False,
-                            ),
-                        ]
-                    )
-                    for i in range(
-                        int(expand_times)
-                    )  # expand to the same as image size.
+                    for i in range(self.setup.fuse_depth)
                 ]
             )
         )
 
-        self.clinical_expand_conv = nn.Sequential(*expand_conv_modules,)
-
-        if self.setup.using_fpn:
-            self._build_fpn_clinical_model()
-        else:
-            self._build_normal_clinical_model()
+        self.fuse_convs = nn.Sequential(*fuse_convs_modules)
 
     def _build_normal_clinical_model(self,):
         shrink_times = int(
@@ -1066,69 +1174,35 @@ class MultimodalGeneralizedRCNN(nn.Module):
             ]
             self.fuse_convs[key] = nn.Sequential(*network)
 
-    # def _build_fpn_clinical_model(self,):
-    #             shrink_times = int(
-    #         math.log(self.setup.image_size, 2)
-    #         - math.log(self.image_feature_map_size, 2)
-    #     )
-
-    #     fpn_count =  len(self.feature_keys)
-
-    #     first_layer_shrink_count = shrink_times - fpn_count
-
-    #     self.clinical_convs = ModuleDict({})
-
-    #     for i, key in enumerate(self.feature_keys):
-    #         if i ==0:
-
-    #     self.clinical_convs = nn.ModuleDict({})
-    #     for k in self.feature_keys:
-    #         self.clinical_convs[k] = nn.Sequential(
-    #             nn.Conv2d(
-    #                 self.setup.clinical_conv_channels,
-    #                 self.setup.clinical_conv_channels,
-    #                 kernel_size=3,
-    #                 stride=2,
-    #                 padding=1,
-    #             ),
-    #             nn.BatchNorm2d(self.setup.clinical_conv_channels),
-    #             nn.ReLU(inplace=False),
-    #             nn.Dropout2d(p=self.setup.clinical_conv_dropout_rate, inplace=False,),
-    #         )
-
-    #     self.fuse_convs = nn.ModuleDict({})
-    #     for k in self.feature_keys:
-    #         self.fuse_convs[k] = nn.Sequential(
-    #             nn.Conv2d(
-    #                 self.backbone.out_channels + self.setup.clinical_conv_channels,
-    #                 self.setup.fuse_conv_channels,
-    #                 kernel_size=3,
-    #                 stride=1,
-    #                 padding=1,
-    #             ),
-    #             nn.BatchNorm2d(self.setup.fuse_conv_channels),
-    #             nn.ReLU(inplace=False),
-    #             nn.Dropout2d(p=self.setup.fuse_dropout_rate, inplace=False,),
-    #         )
-
     def get_clinical_features(self, clinical_num, clinical_cat):
-        clincal_embout = self.gender_emb_layer(torch.concat(clinical_cat, axis=0))
-        clinical_input = torch.concat(
-            [torch.stack(clinical_num, dim=0), clincal_embout], axis=1
-        )[:, :, None, None]
 
-        clinical_features = OrderedDict({})
+        clinical_input = None
+        if self.setup.use_clinical :
+            clincal_embout = self.gender_emb_layer(torch.concat(clinical_cat, axis=0))
+            clinical_input = torch.concat(
+                [torch.stack(clinical_num, dim=0), clincal_embout], axis=1
+            )
 
-        clinical_input = self.clinical_expand_conv(clinical_input)
+        clinical_features = None
+        if self.setup.spatialise_clinical:
+            clinical_features = OrderedDict({})
+            clinical_expanded_input = self.clinical_expand_conv(
+                clinical_input[:, :, None, None]
+            )
+            self.clinical_expanded_input = clinical_expanded_input
+            clinical_features = self.clinical_convs(clinical_expanded_input)
 
-        if self.setup.using_fpn:
-            for k in self.clinical_convs.keys():
-                clinical_input = self.clinical_convs[k](clinical_input)
-                clinical_features[k] = clinical_input
-        else:
-            clinical_features["0"] = self.clinical_convs(clinical_input)
+            # if self.setup.using_fpn:
+            #     for k in self.feature_keys:
+            #         clinical_input = self.clinical_convs[k](clinical_input)
+            #         clinical_features[k] = clinical_input
+            # else:
+            #     clinical_features["0"] = self.clinical_convs(clinical_input)
 
-        return clinical_features
+            if isinstance(clinical_features, torch.Tensor):
+                clinical_features = OrderedDict([("0", clinical_features)])
+
+        return clinical_input, clinical_features
 
     @torch.jit.unused
     def eager_outputs(self, losses, detections):
@@ -1156,18 +1230,30 @@ class MultimodalGeneralizedRCNN(nn.Module):
         features = OrderedDict({})
         if self.setup.using_fpn:
             for k in self.feature_keys:
-                features[k] = self.fuse_convs[k](
-                    self.fuse_feature_maps(img_features[k], clinical_features[k])
-                )
+                if self.setup.fusion_strategy == "add" and self.setup.fuse_depth == 0:
+                    features[k] = self.fuse_feature_maps(
+                        img_features[k], clinical_features[k]
+                    )
+                else:
+                    features[k] = self.fuse_convs[k](
+                        self.fuse_feature_maps(img_features[k], clinical_features[k])
+                    )
 
                 if self.setup.fusion_strategy == "add" and self.setup.fusion_residule:
                     features[k] = features[k] + img_features[k] + clinical_features[k]
 
         else:
             k = "0"
-            features[k] = self.fuse_convs(
-                self.fuse_feature_maps(img_features[k], clinical_features[k])
-            )
+            if self.setup.fusion_strategy == "add" and self.setup.fuse_depth == 0:
+                features[k] = self.fuse_feature_maps(
+                    img_features[k], clinical_features[k]
+                )
+
+            else:
+                features[k] = self.fuse_convs(
+                    self.fuse_feature_maps(img_features[k], clinical_features[k])
+                )
+
             if self.setup.fusion_strategy == "add" and self.setup.fusion_residule:
                 features[k] = features[k] + img_features[k] + clinical_features[k]
 
@@ -1241,18 +1327,26 @@ class MultimodalGeneralizedRCNN(nn.Module):
         if isinstance(img_features, torch.Tensor):
             img_features = OrderedDict([("0", img_features)])
 
+        clinical_input = None
         if self.setup.use_clinical:
-            clinical_features = self.get_clinical_features(clinical_num, clinical_cat)
-            self.clinical_features = clinical_features
-            self.img_features = img_features
-            features = self.fuse_features(img_features, clinical_features)
+            clinical_input, clinical_features = self.get_clinical_features(
+                clinical_num, clinical_cat
+            )
+            if self.setup.spatialise_clinical:
+                features = self.fuse_features(img_features, clinical_features)
+            else:
+                features = img_features
         else:
             features = img_features
 
         proposals, proposal_losses = self.rpn(images, features, targets)
 
         detections, detector_losses = self.roi_heads(
-            features, proposals, images.image_sizes, targets
+            features,
+            proposals,
+            images.image_sizes,
+            targets,
+            clinical_input=clinical_input,
         )
 
         detections = postprocess(
@@ -1430,6 +1524,7 @@ class MultimodalFasterRCNN(MultimodalGeneralizedRCNN):
         box_batch_size_per_image=512,
         box_positive_fraction=0.25,
         bbox_reg_weights=None,
+        clinical_backbone=None,
         # Clinical and fuse features,
         # clinical_input_channels=32,
         # clinical_num_len=9,
@@ -1503,6 +1598,7 @@ class MultimodalFasterRCNN(MultimodalGeneralizedRCNN):
         if box_head is None:
             resolution = box_roi_pool.output_size[0]
             box_head = XAMITwoMLPHead(
+                setup,
                 out_channels * resolution ** 2,
                 setup.representation_size,
                 dropout_rate=setup.box_head_dropout_rate,
@@ -1513,6 +1609,7 @@ class MultimodalFasterRCNN(MultimodalGeneralizedRCNN):
 
         roi_heads = XAMIRoIHeads(
             # Box
+            setup,
             box_roi_pool,
             box_head,
             box_predictor,
@@ -1544,12 +1641,7 @@ class MultimodalFasterRCNN(MultimodalGeneralizedRCNN):
             rpn,
             roi_heads,
             transform,
-            # clinical_input_channels=clinical_input_channels,
-            # clinical_num_len=clinical_num_len,
-            # clinical_conv_channels=clinical_conv_channels,
-            # fuse_conv_channels=fuse_conv_channels,
-            # use_clinical=use_clinical,
-            # image_size=image_size,
+            clinical_backbone=clinical_backbone,
         )
 
 
@@ -1736,6 +1828,7 @@ class MultimodalMaskRCNN(MultimodalFasterRCNN):
         # image_size=256,
         # representation_size=1024,
         # box_head_dropout_rate=0,
+        clinical_backbone=None,
     ):
 
         assert isinstance(mask_roi_pool, (MultiScaleRoIAlign, type(None)))
@@ -1780,6 +1873,7 @@ class MultimodalMaskRCNN(MultimodalFasterRCNN):
             box_batch_size_per_image,
             box_positive_fraction,
             bbox_reg_weights,
+            clinical_backbone=clinical_backbone
             # Clinical and fuse features
             # setup = setup,
             # clinical_input_channels=clinical_input_channels,

@@ -17,18 +17,19 @@ def get_trained_model(
     with open(os.path.join("training_records", f"{model_select.value}.pkl"), "rb") as f:
         train_info: TrainingInfo = pickle.load(f)
 
-    model = create_model_from_setup(labels_cols, train_info.model_setup, **kwargs)
+    model = create_model_from_setup(labels_cols, train_info.model_setup, **kwargs,)
     model.to(device)
 
     cp : Dict = torch.load(
             os.path.join("trained_models", model_select.value), map_location=device
         )
 
+
     model.load_state_dict(
         cp['model_state_dict']
     )
+    
     model.to(device)
-
     params = [p for p in model.parameters() if p.requires_grad]
 
     dynamic_weight = None
@@ -46,6 +47,8 @@ def get_trained_model(
         optim.load_state_dict(cp['optimizer_state_dict'])
 
     return model, train_info, optim, dynamic_weight
+    # return model, train_info, None, None
+
 
 
 def get_current_epoch(trained_model: TrainedModels) -> int:

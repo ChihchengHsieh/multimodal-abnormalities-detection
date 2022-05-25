@@ -142,6 +142,7 @@ def check_best(
     iou_types: List[str],
     device: str,
     score_thres: Dict[str, float] = None,
+    dynamic_weight: nn.Module =None, 
 ) -> Tuple[float, float, TrainingInfo]:
 
     val_ar, val_ap = get_ar_ap(train_info.last_val_evaluator)
@@ -172,6 +173,7 @@ def check_best(
                 test_ar=test_ar,
                 test_ap=test_ap,
                 optimizer=optim,
+                dynamic_weight=dynamic_weight
             )
             train_info.best_ar_val_model_path = train_info.final_model_path
             train_info.best_val_ar = val_ar
@@ -187,6 +189,7 @@ def check_best(
                 test_ar=test_ar,
                 test_ap=test_ap,
                 optimizer=optim,
+                dynamic_weight=dynamic_weight,
             )
             train_info.best_ap_val_model_path = train_info.final_model_path
             train_info.best_val_ap = val_ap
@@ -207,6 +210,7 @@ def end_train(
     test_coco: Dataset,
     iou_types: List[str],
     score_thres: Dict[str, float] = None,
+    dynamic_weight: nn.Module = None,
 ) -> TrainingInfo:
     train_info.end_t = datetime.now()
     sec_took = (train_info.end_t - train_info.start_t).seconds
@@ -232,6 +236,7 @@ def end_train(
         coco=test_coco,
         iou_types=iou_types,
         score_thres=score_thres,
+        
     )
 
     test_ar, test_ap = get_ar_ap(train_info.test_evaluator)
@@ -244,6 +249,7 @@ def end_train(
         test_ar=test_ar,
         test_ap=test_ap,
         optimizer=optim,
+        dynamic_weight = dynamic_weight,
     )
 
     print_f.print_title(

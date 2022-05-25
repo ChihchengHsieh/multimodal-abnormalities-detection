@@ -45,6 +45,7 @@ class ModelSetup:
     clinical_expand_dropout_rate: float = 0
     clinical_conv_dropout_rate: float = 0
     clinical_input_channels: int = 32
+    clinical_expand_conv_channels: int = 32
     clinical_num_len: int = 9
     clinical_conv_channels: int = 32
 
@@ -54,6 +55,11 @@ class ModelSetup:
     box_head_dropout_rate: float = 0
     fuse_depth: int = 4
 
+    spatialise_clinical: bool = True
+    add_clinical_to_roi_heads:bool = True
+
     fusion_strategy: str = "concat"  # ["add", "concat"]
     fusion_residule: bool =  False
+
+    gt_in_train_till: int = 20
 

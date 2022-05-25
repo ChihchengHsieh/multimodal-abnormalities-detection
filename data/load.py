@@ -22,7 +22,7 @@ def get_datasets(
 ) -> Tuple[ReflacxDataset, ReflacxDataset, ReflacxDataset, ReflacxDataset]:
 
     detect_eval_dataset = ReflacxDataset(
-        **{**dataset_params_dict, "dataset_mode": "unified",},
+        **{**dataset_params_dict,}, # , "dataset_mode": "unified"
         transforms=get_transform(train=False),
     )
 

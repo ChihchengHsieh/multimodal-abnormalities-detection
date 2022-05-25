@@ -72,9 +72,8 @@ def print_params_setup(model):
     if hasattr(model.roi_heads, "mask_head") and not model.roi_heads.mask_head is None:
         print(f"[model.roi_heads.mask_head]: {num_params(model.roi_heads.mask_head):,}")
 
-    if hasattr(model, "clinical_convs"):
+    if hasattr(model, "clinical_convs") and not model.clinical_convs is None:
         print(f"[model.clinical_convs]: {num_params(model.clinical_convs):,}")
 
-
-    if hasattr(model, "fuse_convs"):
+    if hasattr(model, "fuse_convs") and not model.fuse_convs is None:
         print(f"[model.fuse_convs]: {num_params(model.fuse_convs):,}")
