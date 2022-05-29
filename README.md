@@ -2833,6 +2833,37 @@ Max AP on test: [0.3018]
 <img width="518" alt="image" src="https://user-images.githubusercontent.com/37566901/170847110-b5ec8959-0357-487d-a4a2-0c214c1dfe1e.png">
 ![image](https://user-images.githubusercontent.com/37566901/170847114-f3c5cf12-2fe3-4148-93f4-d7fe2a95c38e.png)
 
+## CXR
+
+```
+========================================For Training [CXR]========================================
+ModelSetup(use_clinical=False, use_custom_model=True, use_early_stop_model=True, name='CXR', backbone='mobilenet_v3', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='normal', image_size=512, backbone_out_channels=64, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=999, reduceLROnPlateau_full_stop=True, multiStepLR_milestones=100, multiStepLR_gamma=0.1, representation_size=64, mask_hidden_layers=64, using_fpn=False, use_mask=True, clinical_input_channels=64, clinical_expand_conv_channels=64, clinical_num_len=9, clinical_conv_channels=64, fuse_conv_channels=64, box_head_dropout_rate=0, fuse_depth=0, spatialise_clinical=False, add_clinical_to_roi_heads=False, fusion_strategy='add', fusion_residule=False, gt_in_train_till=999, spatialise_method='convs', normalise_clinical_num=False, measure_test=True)
+==================================================================================================
+
+Best AP validation model has been saved to: [val_ar_0_4483_ap_0_2048_test_ar_0_5114_ap_0_1746_epoch52_WithoutClincal_05-29-2022 13-18-59_CXR]
+Best AR validation model has been saved to: [val_ar_0_5659_ap_0_1741_test_ar_0_5390_ap_0_1961_epoch36_WithoutClincal_05-29-2022 12-29-51_CXR]
+The final model has been saved to: [val_ar_0_3937_ap_0_1574_test_ar_0_3679_ap_0_1713_epoch60_WithoutClincal_05-29-2022 13-43-13_CXR]
+
+==================================================================================================
+Load custom model
+Using pretrained backbone. mobilenet_v3
+Mask Hidden Layers 256
+[model]: 3,689,423
+[model.backbone]: 1,258,848
+[model.rpn]: 41,803
+[model.roi_heads]: 2,388,772
+[model.roi_heads.box_head]: 204,928
+[model.roi_heads.box_head.fc6]: 200,768
+[model.roi_heads.box_head.fc7]: 4,160
+[model.roi_heads.box_predictor]: 1,950
+[model.roi_heads.mask_head]: 1,917,952
+Max AP on test: [0.2428]
+```
+
+<img width="498" alt="image" src="https://user-images.githubusercontent.com/37566901/170852153-ef410114-2b8a-42ae-8464-c523db559bb8.png">
+<img width="518" alt="image" src="https://user-images.githubusercontent.com/37566901/170852157-fd94250e-7ef8-4983-9f32-53f871122187.png">
+<img width="516" alt="image" src="https://user-images.githubusercontent.com/37566901/170852163-ad36915f-a681-4baf-88fc-8ac5341a7f02.png">
+<img width="519" alt="image" src="https://user-images.githubusercontent.com/37566901/170852165-7f42c880-3b43-4e52-b367-2ee303f3c7bc.png">
 
 ### Improvement attempts,
 
