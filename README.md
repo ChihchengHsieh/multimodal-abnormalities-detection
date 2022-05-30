@@ -2737,7 +2737,7 @@ mobilenet_v3
 ```
 ### Ablation 2:
 
-## CXR_Clinical_fusion1_fusino2
+## CXR_Clinical_fusion1_fusino2 (0.2886)
 ```
 ========================================For Training [CXR_Clinical_fusion1_fusino2]========================================
 ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='CXR_Clinical_fusion1_fusino2', backbone='mobilenet_v3', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='normal', image_size=512, backbone_out_channels=64, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=999, reduceLROnPlateau_full_stop=True, multiStepLR_milestones=100, multiStepLR_gamma=0.1, representation_size=64, mask_hidden_layers=64, using_fpn=False, use_mask=True, clinical_input_channels=64, clinical_expand_conv_channels=64, clinical_num_len=9, clinical_conv_channels=64, fuse_conv_channels=64, box_head_dropout_rate=0, fuse_depth=0, spatialise_clinical=True, add_clinical_to_roi_heads=True, fusion_strategy='add', fusion_residule=False, gt_in_train_till=999, spatialise_method='convs', normalise_clinical_num=False, measure_test=True)
@@ -2769,7 +2769,7 @@ Max AP on test: [0.3450]
 <img width="519" alt="image" src="https://user-images.githubusercontent.com/37566901/170847013-8d13633a-609f-4f0c-852c-09e71260241f.png">
 <img width="520" alt="image" src="https://user-images.githubusercontent.com/37566901/170847015-cb444006-0a90-4734-8405-ed3f030e4389.png">
 
-## CXR_Clinical_fusion1
+## CXR_Clinical_fusion1 (0.2382)
 ```
 ========================================For Training [CXR_Clinical_fusion1]========================================
 ModelSetup(use_clinical=True, use_custom_model=True, use_early_stop_model=True, name='CXR_Clinical_fusion1', backbone='mobilenet_v3', optimiser='sgd', lr=0.001, weight_decay=0, pretrained=True, record_training_performance=True, dataset_mode='normal', image_size=512, backbone_out_channels=64, batch_size=4, warmup_epochs=0, lr_scheduler='ReduceLROnPlateau', reduceLROnPlateau_factor=0.1, reduceLROnPlateau_patience=999, reduceLROnPlateau_full_stop=True, multiStepLR_milestones=100, multiStepLR_gamma=0.1, representation_size=64, mask_hidden_layers=64, using_fpn=False, use_mask=True, clinical_input_channels=64, clinical_expand_conv_channels=64, clinical_num_len=9, clinical_conv_channels=64, fuse_conv_channels=64, box_head_dropout_rate=0, fuse_depth=0, spatialise_clinical=True, add_clinical_to_roi_heads=False, fusion_strategy='add', fusion_residule=False, gt_in_train_till=999, spatialise_method='convs', normalise_clinical_num=False, measure_test=True)
@@ -2803,7 +2803,7 @@ Max AP on test: [0.2765]
 <img width="522" alt="image" src="https://user-images.githubusercontent.com/37566901/170847058-a3cf400f-a6ab-4e0b-a3be-eea3da46d0c7.png">
 
 
-## CXR_Clinical_fusion2
+## CXR_Clinical_fusion2 (0.2222)
 
 ```
 ========================================For Training [CXR_Clinical_fusion2]========================================
@@ -2833,7 +2833,7 @@ Max AP on test: [0.3018]
 <img width="518" alt="image" src="https://user-images.githubusercontent.com/37566901/170847110-b5ec8959-0357-487d-a4a2-0c214c1dfe1e.png">
 ![image](https://user-images.githubusercontent.com/37566901/170847114-f3c5cf12-2fe3-4148-93f4-d7fe2a95c38e.png)
 
-## CXR
+## CXR (0.1961)
 
 ```
 ========================================For Training [CXR]========================================
@@ -2868,7 +2868,7 @@ Max AP on test: [0.2428]
 
 # last attempts without normalisation
 
-## CXR_Clinical_fusion1_fusino2
+## CXR_Clinical_fusion1_fusino2 (0.2800)
 
 ```
 ========================================For Training [CXR_Clinical_fusion1_fusino2]========================================
@@ -2902,7 +2902,7 @@ Max AP on test: [0.2994]
 <img width="516" alt="image" src="https://user-images.githubusercontent.com/37566901/171006842-405204bd-778d-45ba-9cd5-bf334b8e75a4.png">
 
 
-## CXR_Clinical_fusion1
+## CXR_Clinical_fusion1 (0.2757)
 
 ```
 ========================================For Training [CXR_Clinical_fusion1]========================================
@@ -2936,7 +2936,7 @@ Max AP on test: [0.2870]
 <img width="520" alt="image" src="https://user-images.githubusercontent.com/37566901/171006974-1531c549-ba0e-4a68-8787-29e31e7d9f91.png">
 
 
-## CXR_Clinical_fusion2
+## CXR_Clinical_fusion2 (0.2218)
 
 ```
 ========================================For Training [CXR_Clinical_fusion2]========================================
@@ -2967,7 +2967,7 @@ Max AP on test: [0.2713]
 <img width="517" alt="image" src="https://user-images.githubusercontent.com/37566901/171007103-6a25303e-926e-47c8-8e3f-904a9904cc4a.png">
 <img width="521" alt="image" src="https://user-images.githubusercontent.com/37566901/171007119-dcd27623-1461-4f3f-bea7-2934973239b9.png">
 
-## CXR
+## CXR (0.2211)
 
 ```
 ========================================For Training [CXR]========================================
