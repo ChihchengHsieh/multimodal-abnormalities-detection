@@ -1,14 +1,13 @@
 import os
-from types import DynamicClassAttribute
 from typing import Dict, List, Tuple
 import torch
 import pickle
 
 from datetime import datetime
-from .eval import get_ar_ap
 from copy import deepcopy
 from utils.detect_utils import MetricLogger
 from utils.engine import xami_evaluate
+from utils.eval import get_ap_ar
 import torch.nn as nn
 
 import utils.print as print_f
@@ -134,6 +133,7 @@ def remove_previous_model(previous_model: str):
 
 def check_best(
     train_info: TrainingInfo,
+    val_ap_ar,
     eval_params_dict: Dict,
     model: nn.Module,
     optim: Optimizer,
@@ -143,24 +143,24 @@ def check_best(
     device: str,
     score_thres: Dict[str, float] = None,
     dynamic_weight: nn.Module =None, 
+    test_ap_ar = None,
 ) -> Tuple[float, float, TrainingInfo]:
 
-    val_ar, val_ap = get_ar_ap(train_info.last_val_evaluator)
+    val_ar, val_ap = val_ap_ar['ar'],  val_ap_ar['ap']
 
     ## Targeting the model with higher Average Recall and Average Precision.
     if val_ar > train_info.best_val_ar or val_ap > train_info.best_val_ap:
-
-        train_info.test_evaluator, test_logger = xami_evaluate(
-            model=model,
-            data_loader=test_dataloader,
-            device=device,
-            params_dict=eval_params_dict,
-            coco=test_coco,
-            iou_types=iou_types,
-            score_thres=score_thres,
-        )
-
-        test_ar, test_ap = get_ar_ap(train_info.test_evaluator)
+        if test_ap_ar is None:
+            train_info.test_evaluator, test_logger = xami_evaluate(
+                model=model,
+                data_loader=test_dataloader,
+                device=device,
+                params_dict=eval_params_dict,
+                coco=test_coco,
+                iou_types=iou_types,
+                score_thres=score_thres,
+            )
+            test_ap_ar = get_ap_ar(train_info.test_evaluator)
 
         if val_ar > train_info.best_val_ar:
             ## Save best validation model
@@ -170,8 +170,8 @@ def check_best(
                 model=model,
                 val_ar=val_ar,
                 val_ap=val_ap,
-                test_ar=test_ar,
-                test_ap=test_ap,
+                test_ar=test_ap_ar['ar'],
+                test_ap=test_ap_ar['ap'],
                 optimizer=optim,
                 dynamic_weight=dynamic_weight
             )
@@ -186,8 +186,8 @@ def check_best(
                 model=model,
                 val_ar=val_ar,
                 val_ap=val_ap,
-                test_ar=test_ar,
-                test_ap=test_ap,
+                test_ar=test_ap_ar['ar'],
+                test_ap=test_ap_ar['ap'],
                 optimizer=optim,
                 dynamic_weight=dynamic_weight,
             )
@@ -239,15 +239,15 @@ def end_train(
         
     )
 
-    test_ar, test_ap = get_ar_ap(train_info.test_evaluator)
+    test_ap_ar = get_ap_ar(train_info.test_evaluator)
 
     train_info = save_checkpoint(
         train_info=train_info,
         model=model,
         val_ar=last_val_ar,
         val_ap=last_val_ap,
-        test_ar=test_ar,
-        test_ap=test_ap,
+        test_ar=test_ap_ar['ar'],
+        test_ap=test_ap_ar['ap'],
         optimizer=optim,
         dynamic_weight = dynamic_weight,
     )

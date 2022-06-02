@@ -2,6 +2,7 @@ import PIL
 from matplotlib.figure import Figure
 import numpy as np
 import matplotlib.pyplot as plt
+from pandas import test
 import torch.nn as nn
 
 from typing import Callable, Dict, List, Union, Tuple
@@ -57,6 +58,7 @@ def get_legend_elements(disease_cmap_solid: Dict[str, str]) -> List[Line2D]:
 def plot_losses(
     train_logers: Union[List[MetricLogger], List[Dict]],
     val_logers: Union[List[MetricLogger], List[Dict]],
+    test_logers: Union[List[MetricLogger], List[Dict], None] = None,
 ):
     if isinstance(train_logers[0], MetricLogger):
         train_data = [get_data_from_metric_logger(loger) for loger in train_logers]
@@ -67,6 +69,12 @@ def plot_losses(
         val_data = [get_data_from_metric_logger(loger) for loger in val_logers]
     else:
         val_data = val_logers
+
+    if test_logers and isinstance(test_logers[0], MetricLogger):
+        test_data = [get_data_from_metric_logger(loger) for loger in test_logers]
+    else:
+        test_data = test_logers
+
 
     train_data_keys = train_data[0].keys()
 
@@ -87,10 +95,17 @@ def plot_losses(
             label="train",
             color="steelblue",
         )
+        
         if k in val_data[0].keys():
             subplots[i].plot(
                 [data[k] for data in val_data], marker="o", label="val", color="orange"
             )
+
+        if k in test_data[0].keys():
+            subplots[i].plot(
+                [data[k] for data in test_data], marker="o", label="test", color="red"
+            )
+
         subplots[i].legend(loc="upper left")
 
     subplots[-1].set_xlabel("Epoch")
@@ -184,54 +199,11 @@ def plot_evaluator(
     return fig
 
 
-def get_ap_ar_for_train_val(
-    train_evaluator: CocoEvaluator,
-    val_evaluator: CocoEvaluator,
-    iouThr=0.5,
-    areaRng="all",
-    maxDets=10,
-):
-
-    train_ap = external_summarize(
-        train_evaluator.coco_eval["bbox"],
-        ap=1,
-        iouThr=iouThr,
-        areaRng=areaRng,
-        maxDets=maxDets,
-        print_result=False,
-    )
-    val_ap = external_summarize(
-        val_evaluator.coco_eval["bbox"],
-        ap=1,
-        iouThr=iouThr,
-        areaRng=areaRng,
-        maxDets=maxDets,
-        print_result=False,
-    )
-
-    train_ar = external_summarize(
-        train_evaluator.coco_eval["bbox"],
-        ap=0,
-        iouThr=iouThr,
-        areaRng=areaRng,
-        maxDets=maxDets,
-        print_result=False,
-    )
-
-    val_ar = external_summarize(
-        val_evaluator.coco_eval["bbox"],
-        ap=0,
-        iouThr=iouThr,
-        areaRng=areaRng,
-        maxDets=maxDets,
-        print_result=False,
-    )
-
-    return ({"ap": train_ap, "ar": train_ar,}, {"ap": val_ap, "ar": val_ar,})
-
-
-def plot_train_val_ap_ars(
-    train_ap_ars: List[Dict[str, float]], val_ap_ars: List[Dict[str, float]], fig_title=None
+def plot_ap_ars(
+    train_ap_ars: List[Dict[str, float]],
+    val_ap_ars: List[Dict[str, float]],
+    test_ap_ars=None,
+    fig_title=None,
 ) -> Figure:
     """
     Plot both training and validation evaluator during training to check overfitting.
@@ -257,6 +229,14 @@ def plot_train_val_ap_ars(
         label="validation",
         color="darkorange",
     )
+    if test_ap_ars:
+        precision_ax.plot(
+            [ap_ar["ap"] for ap_ar in test_ap_ars],
+            marker="o",
+            label="test",
+            color="red",
+        )
+
     precision_ax.legend(loc="upper left")
 
     recall_ax.set_title("Recall")
@@ -273,6 +253,15 @@ def plot_train_val_ap_ars(
         label="validation",
         color="darkorange",
     )
+
+    if test_ap_ars:
+        recall_ax.plot(
+            [ap_ar["ar"] for ap_ar in test_ap_ars],
+            marker="o",
+            label="test",
+            color="red",
+        )
+
     recall_ax.legend(loc="upper left")
 
     recall_ax.set_xlabel("Epoch")

@@ -8,9 +8,6 @@ class ModelSetup:
     use_custom_model: bool
     use_early_stop_model: bool
     name: str = None
-    best_ar_val_model_path: str = None
-    best_ap_val_model_path: str = None
-    final_model_path: str = None
     backbone: str = "resnet50"  # [resnet18, resnet50, swin, mobilenet_v3]
     optimiser: str = "adamw"  # [adamw, sgd]
     lr: float = 0.0005
@@ -42,24 +39,24 @@ class ModelSetup:
     using_fpn: bool = False
     use_mask: bool = True
 
-    clinical_expand_dropout_rate: float = 0
-    clinical_conv_dropout_rate: float = 0
     clinical_input_channels: int = 32
     clinical_expand_conv_channels: int = 32
     clinical_num_len: int = 9
     clinical_conv_channels: int = 32
 
     fuse_conv_channels: int = 32
-    fuse_dropout_rate: float = 0
 
     box_head_dropout_rate: float = 0
     fuse_depth: int = 4
 
     spatialise_clinical: bool = True
-    add_clinical_to_roi_heads:bool = True
+    add_clinical_to_roi_heads: bool = True
 
     fusion_strategy: str = "concat"  # ["add", "concat"]
-    fusion_residule: bool =  False
+    fusion_residule: bool = False
 
     gt_in_train_till: int = 20
 
+    spatialise_method: str = "convs"  # ["convs", "repeat"]
+    normalise_clinical_num: bool = False
+    measure_test: bool = False

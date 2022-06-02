@@ -20,35 +20,42 @@ def get_trained_model(
     model = create_model_from_setup(labels_cols, train_info.model_setup, **kwargs,)
     model.to(device)
 
-    cp : Dict = torch.load(
-            os.path.join("trained_models", model_select.value), map_location=device
-        )
-
-
-    model.load_state_dict(
-        cp['model_state_dict']
+    cp: Dict = torch.load(
+        os.path.join("trained_models", model_select.value), map_location=device
     )
-    
+
+    model.load_state_dict(cp["model_state_dict"])
+
     model.to(device)
     params = [p for p in model.parameters() if p.requires_grad]
 
     dynamic_weight = None
     if "dynamic_weight_state_dict" in cp:
-        dynamic_weight = DynamicWeightedLoss()
+        loss_keys = [
+            "loss_classifier",
+            "loss_box_reg",
+            "loss_objectness",
+            "loss_rpn_box_reg",
+        ]
+
+        dynamic_weight = DynamicWeightedLoss(
+            keys=loss_keys + ["loss_mask"]
+            if train_info.model_setup.use_mask
+            else loss_keys
+        )
         dynamic_weight.to(device)
-        dynamic_weight.load_state_dict(cp['dynamic_weight_state_dict'])
+        dynamic_weight.load_state_dict(cp["dynamic_weight_state_dict"])
         params += [p for p in dynamic_weight.parameters() if p.requires_grad]
-        
+
     optim = None
     if "optimizer_state_dict" in cp:
         optim: torch.optim.optimizer.Optimizer = get_optimiser(
             params, train_info.model_setup
         )
-        optim.load_state_dict(cp['optimizer_state_dict'])
+        optim.load_state_dict(cp["optimizer_state_dict"])
 
     return model, train_info, optim, dynamic_weight
     # return model, train_info, None, None
-
 
 
 def get_current_epoch(trained_model: TrainedModels) -> int:

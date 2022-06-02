@@ -3,32 +3,74 @@ from collections import OrderedDict
 from typing import Tuple
 from .coco_eval import CocoEvaluator, external_summarize
 
-def get_ar_ap(
-    evaluator: CocoEvaluator,
-    areaRng: str = "all",
-    iouThr: float = 0.5,
-    maxDets: int = 10,
-) -> Tuple[float, float]:
+# def get_ar_ap(
+#     evaluator: CocoEvaluator,
+#     areaRng: str = "all",
+#     iouThr: float = 0.5,
+#     maxDets: int = 10,
+# ) -> Tuple[float, float]:
+
+#     ar = external_summarize(
+#         evaluator.coco_eval["bbox"],
+#         ap=0,
+#         areaRng=areaRng,
+#         iouThr=iouThr,
+#         maxDets=maxDets,
+#         print_result=False,
+#     )
+
+#     ap = external_summarize(
+#         evaluator.coco_eval["bbox"],
+#         ap=1,
+#         areaRng=areaRng,
+#         iouThr=iouThr,
+#         maxDets=maxDets,
+#         print_result=False,
+#     )
+
+#     return ar, ap
+
+def get_ap_ar(
+    evaluator, iouThr=0.5, areaRng="all", maxDets=10,
+):
+    ap = external_summarize(
+        evaluator.coco_eval["bbox"],
+        ap=1,
+        iouThr=iouThr,
+        areaRng=areaRng,
+        maxDets=maxDets,
+        print_result=False,
+    )
 
     ar = external_summarize(
         evaluator.coco_eval["bbox"],
         ap=0,
-        areaRng=areaRng,
         iouThr=iouThr,
+        areaRng=areaRng,
         maxDets=maxDets,
         print_result=False,
     )
 
-    ap = external_summarize(
-        evaluator.coco_eval["bbox"],
-        ap=1,
-        areaRng=areaRng,
-        iouThr=iouThr,
-        maxDets=maxDets,
-        print_result=False,
+    return {"ap": ap, "ar": ar}
+
+
+def get_ap_ar_for_train_val(
+    train_evaluator: CocoEvaluator,
+    val_evaluator: CocoEvaluator,
+    iouThr=0.5,
+    areaRng="all",
+    maxDets=10,
+):
+
+    train_ap_ar = get_ap_ar(
+        train_evaluator, iouThr=iouThr, areaRng=areaRng, maxDets=maxDets,
     )
 
-    return ar, ap
+    val_ap_ar = get_ap_ar(
+        val_evaluator, iouThr=iouThr, areaRng=areaRng, maxDets=maxDets,
+    )
+
+    return train_ap_ar, val_ap_ar
 
 def save_iou_results(evaluator: CocoEvaluator, suffix: str, model_path: str):
     ap_ar_dict = OrderedDict(
@@ -36,13 +78,13 @@ def save_iou_results(evaluator: CocoEvaluator, suffix: str, model_path: str):
     )
 
     for thrs in evaluator.coco_eval["bbox"].params.iouThrs:
-        test_ar, test_ap = get_ar_ap(evaluator, areaRng="all", maxDets=10, iouThr=thrs,)
+        test_ap_ar = get_ap_ar(evaluator, areaRng="all", maxDets=10, iouThr=thrs,)
 
         ap_ar_dict[thrs].append(
-            {"ar": test_ar, "ap": test_ap,}
+            test_ap_ar
         )
 
-        print(f"IoBB [{thrs:.4f}] | AR [{test_ar:.4f}] | AP [{test_ap:.4f}]")
+        print(f"IoBB [{thrs:.4f}] | AR [{test_ap_ar['ar']:.4f}] | AP [{test_ap_ar['ap']:.4f}]")
 
     with open(
         os.path.join("eval_results", f"{model_path}_{suffix}.pkl"), "wb",

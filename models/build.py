@@ -124,7 +124,7 @@ def multimodal_maskrcnn_resnet_fpn(
     #     )
     #     backbone.out_channels = backbone_out_channels
     clinical_backbone = None
-    if setup.use_clinical:
+    if setup.spatialise_clinical and setup.spatialise_method == "convs": 
         clinical_backbone = get_clinical_backbone(setup)
 
     model = MultimodalMaskRCNN(
@@ -164,7 +164,7 @@ def multimodal_maskrcnn_swin_fpn(
     )
 
     clinical_backbone = None
-    if setup.use_clinical:
+    if setup.spatialise_clinical and setup.spatialise_method == "convs":
         clinical_backbone = get_clinical_backbone(
             setup, fpn_args=fpn_args, swin_args=swin_args
         )
@@ -358,7 +358,7 @@ def multimodal_maskrcnn_with_backbone(
     )
 
     clinical_backbone = None
-    if setup.use_clinical:
+    if setup.spatialise_clinical and setup.spatialise_method == "convs":
         clinical_backbone = get_clinical_backbone(setup)
 
     model = MultimodalMaskRCNN(

@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import torch, json
 import torch.utils.data as data
+from sklearn.preprocessing import StandardScaler
 
 from pathlib import Path
 from sklearn.preprocessing import LabelEncoder
@@ -27,6 +28,7 @@ from .constants import (
 )
 from .helpers import map_target_to_device
 
+
 def collate_fn(batch: Tuple) -> Tuple:
     return tuple(zip(*batch))
 
@@ -48,7 +50,6 @@ class ReflacxDataset(data.Dataset):
         bbox_to_mask: bool = False,
         split_str: str = None,
         transforms: Callable[[Image.Image, Dict], Tuple[torch.Tensor, Dict]] = None,
-        image_size: int = 224,
         dataset_mode: str = "normal",
         clinical_numerical_cols: List[str] = DEFAULT_MIMIC_CLINICAL_NUM_COLS,
         clinical_categorical_cols: List[str] = DEFAULT_MIMIC_CLINICAL_CAT_COLS,
@@ -60,17 +61,18 @@ class ReflacxDataset(data.Dataset):
         box_fix_cols: List[str] = DEFAULT_REFLACX_BOX_FIX_COLS,
         box_coord_cols: List[str] = DEFAULT_REFLACX_BOX_COORD_COLS,
         path_cols: List[str] = DEFAULT_REFLACX_PATH_COLS,
+        normalise_clinical_num=True,
     ):
         # Data loading selections
         self.with_clinical: bool = with_clinical
         self.split_str: str = split_str
 
         # Image related
-        self.image_size: int = image_size
         self.transforms: Callable[
             [Image.Image, Dict], Tuple[torch.Tensor, Dict]
         ] = transforms
         self.path_cols: List[str] = path_cols
+        self.normalise_clinical_num = normalise_clinical_num
 
         # Labels
         self.labels_cols: List[str] = labels_cols
@@ -102,7 +104,12 @@ class ReflacxDataset(data.Dataset):
             self.clinical_cols: List[
                 str
             ] = clinical_numerical_cols + clinical_categorical_cols
+            self.clinical_num_norm: StandardScaler = StandardScaler().fit(
+                self.df[self.clinical_numerical_cols]
+            )
+
             self.preprocess_clinical_df()
+
 
         ## Split dataset.
         if not self.split_str is None:
@@ -255,10 +262,21 @@ class ReflacxDataset(data.Dataset):
         img_t, target = self.transforms(img, target)
 
         if self.with_clinical:
-
-            clinical_num = torch.tensor(
-                np.array(data[self.clinical_numerical_cols], dtype=float)
-            ).float()
+            if self.normalise_clinical_num:
+                clinical_num = (
+                    torch.tensor(
+                        self.clinical_num_norm.transform(
+                            np.array([data[self.clinical_numerical_cols]])
+                        ),
+                        dtype=float,
+                    )
+                    .float()
+                    .squeeze()
+                )
+            else:
+                clinical_num = torch.tensor(
+                    np.array(data[self.clinical_numerical_cols], dtype=float)
+                ).float()
 
             clinical_cat = torch.tensor(
                 np.array(data[self.clinical_categorical_cols], dtype=int)
