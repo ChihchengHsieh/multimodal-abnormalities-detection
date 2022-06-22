@@ -1,6 +1,7 @@
 from typing import Dict, List
 
 XAMI_MIMIC_PATH = "D:\XAMI-MIMIC"
+SPREADSHEET_FOLDER = "spreadsheets"
 
 """
 MIMIC

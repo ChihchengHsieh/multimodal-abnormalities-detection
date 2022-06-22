@@ -716,7 +716,6 @@ class XAMIRoIHeads(nn.Module):
             box_features = self.box_head(box_features, proposals_clinical_input)
         else:
             box_features = self.box_head(box_features)
-        self.head_out = box_features
 
         class_logits, box_regression = self.box_predictor(box_features)
         self.pred_out_logits, self.pred_out_reg = class_logits, box_regression
@@ -734,8 +733,6 @@ class XAMIRoIHeads(nn.Module):
         pred_boxes, pred_scores, pred_labels = self.postprocess_detections(
             class_logits, box_regression, proposals, image_shapes
         )
-
-        self.pred_boxes = pred_boxes
 
         num_images = len(pred_boxes)
 
@@ -1032,7 +1029,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
                 clinical_expanded_input = self.clinical_expand_conv(
                     clinical_input[:, :, None, None]
                 )
-                self.clinical_expanded_input = clinical_expanded_input
+                self.last_clinical_expanded_input = clinical_expanded_input
                 clinical_features = self.clinical_convs(clinical_expanded_input)
 
                 if isinstance(clinical_features, torch.Tensor):

@@ -29,7 +29,7 @@ def get_trained_model(
     model.to(device)
     params = [p for p in model.parameters() if p.requires_grad]
 
-    dynamic_weight = None
+    dynamic_loss_weight = None
     if "dynamic_weight_state_dict" in cp:
         loss_keys = [
             "loss_classifier",
@@ -38,14 +38,14 @@ def get_trained_model(
             "loss_rpn_box_reg",
         ]
 
-        dynamic_weight = DynamicWeightedLoss(
+        dynamic_loss_weight = DynamicWeightedLoss(
             keys=loss_keys + ["loss_mask"]
             if train_info.model_setup.use_mask
             else loss_keys
         )
-        dynamic_weight.to(device)
-        dynamic_weight.load_state_dict(cp["dynamic_weight_state_dict"])
-        params += [p for p in dynamic_weight.parameters() if p.requires_grad]
+        dynamic_loss_weight.to(device)
+        dynamic_loss_weight.load_state_dict(cp["dynamic_weight_state_dict"])
+        params += [p for p in dynamic_loss_weight.parameters() if p.requires_grad]
 
     optim = None
     if "optimizer_state_dict" in cp:
@@ -54,7 +54,7 @@ def get_trained_model(
         )
         optim.load_state_dict(cp["optimizer_state_dict"])
 
-    return model, train_info, optim, dynamic_weight
+    return model, train_info, optim, dynamic_loss_weight
     # return model, train_info, None, None
 
 

@@ -11,4 +11,9 @@
 /high_scores
 backup.bib
 /generated_bb*
-/CXR+Clinial (fusion1+fusion2)*
+/CXR+Clinical (fusion1+2)
+*.tex
+/writing
+/slides
+/charts
+/deprecated

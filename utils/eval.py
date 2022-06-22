@@ -1,7 +1,7 @@
 import pickle, os
 from collections import OrderedDict
 from typing import Tuple
-from .coco_eval import CocoEvaluator, external_summarize
+from .coco_eval import CocoEvaluator, external_summarize, external_get_num_fps
 
 # def get_ar_ap(
 #     evaluator: CocoEvaluator,
@@ -53,6 +53,17 @@ def get_ap_ar(
 
     return {"ap": ap, "ar": ar}
 
+def get_num_fps(
+    evaluator, iouThr=0.5, areaRng="all", maxDets=10,
+):
+    num_fps = external_get_num_fps(
+        evaluator.coco_eval["bbox"],
+        iouThr=iouThr,
+        areaRng=areaRng,
+        maxDets=maxDets,
+    )
+
+    return num_fps
 
 def get_ap_ar_for_train_val(
     train_evaluator: CocoEvaluator,

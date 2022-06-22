@@ -279,6 +279,34 @@ def createIndex(self):
 maskUtils = mask_util
 
 
+def external_get_num_fps(
+    evaluator, iouThr=None, areaRng="all", maxDets=100,
+):
+    p = evaluator.params
+    aind = [i for i, aRng in enumerate(p.areaRngLbl) if aRng == areaRng]
+    mind = [i for i, mDet in enumerate(p.maxDets) if mDet == maxDets]
+
+    # dimension of precision: [TxRxKxAxM]
+    s = evaluator.eval["num_fps"]
+    # IoU
+   # dimension of recall: [TxKxAxM]
+    if iouThr is not None:
+        if isinstance(iouThr, float):
+            t = np.where(iouThr == p.iouThrs)[0]
+            s = s[t]
+        elif isinstance(iouThr, list):
+            t_start = np.where(iouThr[0] == p.iouThrs)[0]
+            t_end = np.where(iouThr[1] == p.iouThrs)[0]
+            s = s[t_start[0] : (t_end[0] + 1)]
+    s = s[:, :, aind, mind]
+
+    if len(s[s > -1]) == 0:
+        sum_s = -1
+    else:
+        sum_s = np.sum(s[s > -1])
+        
+    return sum_s
+
 def external_summarize(
     evaluator, ap=1, iouThr=None, areaRng="all", maxDets=100, print_result=False,
 ):

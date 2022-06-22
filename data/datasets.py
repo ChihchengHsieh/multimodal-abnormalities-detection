@@ -1,19 +1,17 @@
-from collections import ChainMap
-from typing import Callable, Dict, List, Tuple, Union
+import os, torch, json
+
 import pandas as pd
 import numpy as np
-import torch, json
 import torch.utils.data as data
-from sklearn.preprocessing import StandardScaler
+import pandas as pd
+import numpy as np
+import torch.utils.data as data
 
+from sklearn.preprocessing import StandardScaler
+from typing import Callable, Dict, List, Tuple, Union
 from pathlib import Path
 from sklearn.preprocessing import LabelEncoder
 from PIL import Image
-
-import pandas as pd
-import numpy as np
-import torch
-import torch.utils.data as data
 from copy import deepcopy
 from sklearn.preprocessing import LabelEncoder
 from .constants import (
@@ -25,6 +23,7 @@ from .constants import (
     DEFAULT_REFLACX_LABEL_COLS,
     DEFAULT_REFLACX_PATH_COLS,
     DEFAULT_REFLACX_REPETITIVE_LABEL_MAP,
+    SPREADSHEET_FOLDER,
 )
 from .helpers import map_target_to_device
 
@@ -61,7 +60,8 @@ class ReflacxDataset(data.Dataset):
         box_fix_cols: List[str] = DEFAULT_REFLACX_BOX_FIX_COLS,
         box_coord_cols: List[str] = DEFAULT_REFLACX_BOX_COORD_COLS,
         path_cols: List[str] = DEFAULT_REFLACX_PATH_COLS,
-        normalise_clinical_num=True,
+        normalise_clinical_num=False,
+        spreadsheets_folder=SPREADSHEET_FOLDER,
     ):
         # Data loading selections
         self.with_clinical: bool = with_clinical
@@ -87,14 +87,19 @@ class ReflacxDataset(data.Dataset):
             assert (
                 self.with_clinical == False
             ), "The full REFLACX dataset doesn't come with identified stayId; hence, it can't be used with clincal data."
-            self.df: pd.DataFrame = pd.read_csv("reflacx_cxr.csv", index_col=0)
+            self.df: pd.DataFrame = pd.read_csv(
+                os.path.join(spreadsheets_folder, "reflacx_cxr.csv"), index_col=0
+            )
 
         elif self.dataset_mode == "normal":
             self.df: pd.DataFrame = pd.read_csv(
-                "reflacx_with_clinical.csv", index_col=0
+                os.path.join(spreadsheets_folder, "reflacx_with_clinical.csv"),
+                index_col=0,
             )
         elif self.dataset_mode == "unified":
-            self.df: pd.DataFrame = pd.read_csv("reflacx_u_df.csv", index_col=0)
+            self.df: pd.DataFrame = pd.read_csv(
+                os.path.join(spreadsheets_folder, "reflacx_u_df.csv"), index_col=0
+            )
 
         # determine if using clinical data.
         if self.with_clinical:
@@ -109,7 +114,6 @@ class ReflacxDataset(data.Dataset):
             )
 
             self.preprocess_clinical_df()
-
 
         ## Split dataset.
         if not self.split_str is None:

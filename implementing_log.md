@@ -1,6 +1,0 @@
-- [ ] Test if the official document can run with our dataset (Try both mobile net and ResNet).
-- [ ] Add TrainingObserver to `official_train_one_epoch` and evaluation function.
-- [ ] Try other optimizers.
-- [ ] Try adjusting the learning rate and other parameters.
-- [ ] Add plot function into the training process.
-- [ ] No other lables showing up.
