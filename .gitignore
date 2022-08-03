@@ -16,3 +16,6 @@ backup.bib
 /CXR+Clinical (fusion1+2)
 *.tex
 *.zip
+/evalute_both_models_by_case*
+/REFLACX_GROUNDTRUTH*
+/reflacx_vs_our

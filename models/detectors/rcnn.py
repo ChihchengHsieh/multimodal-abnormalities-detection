@@ -428,6 +428,7 @@ class XAMIRoIHeads(nn.Module):
         keypoint_head=None,
         keypoint_predictor=None,
         use_gt_in_train=True,
+        across_class_nms_thresh=None,
     ):
         super().__init__()
 
@@ -454,6 +455,7 @@ class XAMIRoIHeads(nn.Module):
         self.score_thresh = score_thresh
         self.nms_thresh = nms_thresh
         self.detections_per_img = detections_per_img
+        self.across_class_nms_thresh= across_class_nms_thresh
 
         self.mask_roi_pool = mask_roi_pool
         self.mask_head = mask_head
@@ -646,8 +648,14 @@ class XAMIRoIHeads(nn.Module):
             # non-maximum suppression, independently done per class
             keep = box_ops.batched_nms(boxes, scores, labels, self.nms_thresh)
             # keep only topk scoring predictions
-            keep = keep[: self.detections_per_img]
+            if not self.across_class_nms_thresh:
+                keep = keep[: self.detections_per_img]
             boxes, scores, labels = boxes[keep], scores[keep], labels[keep]
+
+            if self.across_class_nms_thresh:
+                keep = box_ops.batched_nms(boxes, scores, torch.ones_like(labels), self.across_class_nms_thresh)
+                keep = keep[: self.detections_per_img]
+                boxes, scores, labels = boxes[keep], scores[keep], labels[keep]
 
             all_boxes.append(boxes)
             all_scores.append(scores)
@@ -924,7 +932,9 @@ class MultimodalGeneralizedRCNN(nn.Module):
                         self.setup.clinical_input_channels, self.fusing_channels
                     )
             else:
-                raise Exception(f"Unsupported spatialisation method: {self.setup.spatialise_method}")
+                raise Exception(
+                    f"Unsupported spatialisation method: {self.setup.spatialise_method}"
+                )
 
             if self.setup.using_fpn:
                 self._build_fpn_fuse_convs()
@@ -1035,7 +1045,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
                 if isinstance(clinical_features, torch.Tensor):
                     clinical_features = OrderedDict([("0", clinical_features)])
             elif self.setup.spatialise_method == "repeat":
-                
+
                 for k in self.feature_keys:
                     clinical_features[k] = self.before_repeat[k](clinical_input)[
                         :, :, None, None
@@ -1043,7 +1053,9 @@ class MultimodalGeneralizedRCNN(nn.Module):
                         1, 1, img_features[k].shape[-2], img_features[k].shape[-1],
                     )
             else:
-                raise Exception("Unsupported spatialise method: {self.setup.sptailise_method}")
+                raise Exception(
+                    "Unsupported spatialise method: {self.setup.sptailise_method}"
+                )
 
         return clinical_input, clinical_features
 
@@ -1363,6 +1375,7 @@ class MultimodalFasterRCNN(MultimodalGeneralizedRCNN):
         box_positive_fraction=0.25,
         bbox_reg_weights=None,
         clinical_backbone=None,
+        across_class_nms_thresh=None,
     ):
 
         if not hasattr(backbone, "out_channels"):
@@ -1450,6 +1463,7 @@ class MultimodalFasterRCNN(MultimodalGeneralizedRCNN):
             box_score_thresh,
             box_nms_thresh,
             box_detections_per_img,
+            across_class_nms_thresh= across_class_nms_thresh,
         )
 
         if image_mean is None:
