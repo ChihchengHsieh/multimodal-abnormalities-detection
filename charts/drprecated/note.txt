@@ -1,0 +1,5 @@
+propsed joinging strategy => data intergration.
+
+a figure to tell readers that we evaluate by radiologists and matrix.
+
+probibility for each class.

@@ -14,7 +14,7 @@ class ModelSetup:
     weight_decay: float = 0.05
     pretrained: bool = False
     record_training_performance: bool = False
-    dataset_mode: str = "unified"
+    dataset_mode: str = "normal" # [normal, unified]
     image_size: int = 256
     backbone_out_channels: int = 64
     batch_size: int = 4
