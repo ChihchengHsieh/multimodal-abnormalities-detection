@@ -50,7 +50,7 @@ class ModelSetup:
     fuse_depth: int = 4
 
     spatialise_clinical: bool = True
-    add_clinical_to_roi_heads: bool = True
+    add_clinical_to_roi_heads: bool = False
 
     fusion_strategy: str = "concat"  # ["add", "concat"]
     fusion_residule: bool = False

@@ -357,9 +357,11 @@ def multimodal_maskrcnn_with_backbone(
         featmap_names=["0"], output_size=7, sampling_ratio=2
     )
 
-    clinical_backbone = None
-    if setup.spatialise_clinical and setup.spatialise_method == "convs":
-        clinical_backbone = get_clinical_backbone(setup)
+    fixations_backbone = get_normal_backbone(setup=setup, pretrained_backbone=pretrained_backbone)
+
+    # clinical_backbone = None
+    # if setup.spatialise_clinical and setup.spatialise_method == "convs":
+    #     clinical_backbone = get_clinical_backbone(setup)
 
     model = MultimodalMaskRCNN(
         setup,
@@ -372,7 +374,8 @@ def multimodal_maskrcnn_with_backbone(
         # clinical_conv_channels=clinical_conv_channels,
         # fuse_conv_channels=fuse_conv_channels,
         # use_clinical=use_clinical,
-        clinical_backbone = clinical_backbone,
+        # clinical_backbone = clinical_backbone,
+        fixations_backbone = fixations_backbone,
         **kwargs,
     )
 

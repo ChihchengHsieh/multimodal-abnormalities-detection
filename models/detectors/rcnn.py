@@ -34,7 +34,7 @@ from torchvision.models.detection.roi_heads import (
 )
 
 from torchvision.models.detection.rpn import (
-    _onnx_get_num_anchors_and_pre_nms_top_n,
+    # _onnx_get_num_anchors_and_pre_nms_top_n,
     concat_box_prediction_layers,
 )
 
