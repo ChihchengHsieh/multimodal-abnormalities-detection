@@ -10,20 +10,13 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 
 from torchvision.models.detection.faster_rcnn import (
-    MultiScaleRoIAlign,
-    RPNHead,
-    # RegionProposalNetwork,
-    RoIHeads,
-    TwoMLPHead,
     FastRCNNPredictor,
     AnchorGenerator,
-    GeneralizedRCNNTransform,
 )
 
 MODEL_URLS = {
     "maskrcnn_resnet50_fpn_coco": "https://download.pytorch.org/models/maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth",
 }
-
 
 class NoAction(nn.Module):
     def __init__(self,):
@@ -52,6 +45,7 @@ def get_multimodal_rcnn_model(
     num_classes, setup: ModelSetup, mask_hidden_layers=256, **kwargs,
 ):
     if setup.using_fpn:
+        # Feature Pyramid Network: https://arxiv.org/abs/1612.03144v2)
         if setup.backbone.startswith("resnet"):
             print("Using ResNet as backbone")
             model = multimodal_maskrcnn_resnet_fpn(
@@ -86,7 +80,6 @@ def get_multimodal_rcnn_model(
 
     return model
 
-
 def multimodal_maskrcnn_resnet_fpn(
     setup: ModelSetup,
     pretrained=False,
@@ -105,10 +98,6 @@ def multimodal_maskrcnn_resnet_fpn(
         # no need to download the backbone if pretrained is set
         pretrained_backbone = False
 
-    # backbone = torchvision.models.detection.backbone_utils.resnet_fpn_backbone(
-    #     "resnet50", pretrained_backbone, trainable_layers=trainable_backbone_layers
-    # )
-
     if pretrained_backbone:
         print(f"Using pretrained backbone. {setup.backbone}")
     else:
@@ -118,12 +107,8 @@ def multimodal_maskrcnn_resnet_fpn(
         setup.backbone, pretrained_backbone, trainable_layers=trainable_backbone_layers
     )
 
-    # if backbone_out_channels:
-    #     backbone = nn.Sequential(
-    #         backbone, nn.Conv2d(backbone.out_channels, backbone_out_channels, 3, 1, 1)
-    #     )
-    #     backbone.out_channels = backbone_out_channels
     clinical_backbone = None
+
     if setup.spatialise_clinical and setup.spatialise_method == "convs": 
         clinical_backbone = get_clinical_backbone(setup)
 
@@ -173,11 +158,6 @@ def multimodal_maskrcnn_swin_fpn(
         setup,
         backbone,
         num_classes,
-        # clinical_input_channels=clinical_input_channels,
-        # clinical_num_len=clinical_num_len,
-        # clinical_conv_channels=clinical_conv_channels,
-        # fuse_conv_channels=fuse_conv_channels,
-        # use_clinical=use_clinical,
         clinical_backbone=clinical_backbone,
         **kwargs,
     )
@@ -200,7 +180,6 @@ def remove_last(model):
             model.avgpool = NoAction()
         return model
 
-
 def to_feature_extract_backbone(resnet):
     return nn.Sequential(
         resnet.conv1,
@@ -212,7 +191,6 @@ def to_feature_extract_backbone(resnet):
         resnet.layer3,
         resnet.layer4,
     )
-
 
 def get_normal_backbone(
     setup: ModelSetup, pretrained_backbone=True,
@@ -293,7 +271,6 @@ def get_normal_backbone(
 
     return backbone
 
-
 def get_clinical_backbone(
     setup: ModelSetup, fpn_args=None, swin_args=None,
 ):
@@ -335,17 +312,10 @@ def get_clinical_backbone(
 
     return clinical_backbone
 
-
 def multimodal_maskrcnn_with_backbone(
     setup: ModelSetup,
     pretrained_backbone=True,
     num_classes=91,
-    # clinical_input_channels=32,
-    # clinical_num_len=9,
-    # clinical_conv_channels=256,
-    # fuse_conv_channels=256,
-    # use_clinical=True,
-    # backbone_out_channels=64,
     **kwargs,
 ):
     backbone = get_normal_backbone(setup=setup, pretrained_backbone=pretrained_backbone)
@@ -367,11 +337,6 @@ def multimodal_maskrcnn_with_backbone(
         num_classes,
         rpn_anchor_generator=anchor_generator,
         box_roi_pool=roi_pooler,
-        # clinical_input_channels=clinical_input_channels,
-        # clinical_num_len=clinical_num_len,
-        # clinical_conv_channels=clinical_conv_channels,
-        # fuse_conv_channels=fuse_conv_channels,
-        # use_clinical=use_clinical,
         clinical_backbone = clinical_backbone,
         **kwargs,
     )
