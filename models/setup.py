@@ -5,6 +5,7 @@ from typing import List
 @dataclass
 class ModelSetup:
     use_clinical: bool
+    use_fixations: bool
     use_custom_model: bool
     use_early_stop_model: bool
     name: str = None

@@ -61,6 +61,7 @@ class XAMITwoMLPHead(nn.Module):
     ):
         super().__init__()
 
+        self.fixation_backbone = self.fixation_backbone
         self.setup = setup
         self.fc6 = nn.Sequential(
             nn.Linear(
@@ -821,6 +822,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
         roi_heads,
         transform,
         clinical_backbone=None,
+        fixations_backbone=None,
     ):
 
         super(MultimodalGeneralizedRCNN, self).__init__()
@@ -834,6 +836,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
         self._has_warned = False
 
         self.clinical_convs = clinical_backbone
+        self.fixations_convs = fixations_backbone
         self.setup = setup
 
         example_img_features = self.backbone(
@@ -1096,11 +1099,12 @@ class MultimodalGeneralizedRCNN(nn.Module):
 
         return features
 
-    def forward(self, images, clinical_num=None, clinical_cat=None, targets=None):
+    def forward(self, images, fixations, clinical_num=None, clinical_cat=None, targets=None):
 
         """
         Args
             images (list[Tensor]): images to be processed
+            fixations (list[Tensor]): fixations to be processed
             targets (list[Dict[Tensor]]): ground-truth boxes present in the image (optional)
 
         Returns:
@@ -1142,6 +1146,14 @@ class MultimodalGeneralizedRCNN(nn.Module):
 
         images, targets = self.transform(images, targets)
 
+        original_fixation_sizes: List[Tuple[int, int]] = []
+        for fix in fixations:
+            val = fix.shape[-2:]
+            assert len(val) == 2
+            original_fixation_sizes.append((val[0], val[1]))
+
+        fixations, targets = self.transform(fixations, targets)
+
         # Check for degenerate boxes
         # TODO: Move this to a function
         if targets is not None:
@@ -1164,6 +1176,11 @@ class MultimodalGeneralizedRCNN(nn.Module):
         if isinstance(img_features, torch.Tensor):
             img_features = OrderedDict([("0", img_features)])
 
+        fixations_features = self.backbone(fixations.tensors)
+
+        if isinstance(fixations_features, torch.Tensor):
+            fixations_features = OrderedDict([("0", fixations_features)])
+
         clinical_input = None
         if self.setup.use_clinical:
             clinical_input, clinical_features = self.get_clinical_features(
@@ -1174,6 +1191,11 @@ class MultimodalGeneralizedRCNN(nn.Module):
                 features = self.fuse_features(img_features, clinical_features)
             else:
                 features = img_features
+
+        elif self.setup.use_fixations:
+            # use same function since it only adds features together to fuse 
+            features = self.fuse_features(img_features, fixations_features)
+
         else:
             features = img_features
 
@@ -1363,6 +1385,7 @@ class MultimodalFasterRCNN(MultimodalGeneralizedRCNN):
         box_positive_fraction=0.25,
         bbox_reg_weights=None,
         clinical_backbone=None,
+        fixations_backbone=None,
     ):
 
         if not hasattr(backbone, "out_channels"):
@@ -1471,6 +1494,7 @@ class MultimodalFasterRCNN(MultimodalGeneralizedRCNN):
             roi_heads,
             transform,
             clinical_backbone=clinical_backbone,
+            fixations_backbone=fixations_backbone,
         )
 
 
@@ -1649,6 +1673,7 @@ class MultimodalMaskRCNN(MultimodalFasterRCNN):
         mask_head=None,
         mask_predictor=None,
         clinical_backbone=None,
+        fixations_backbone=None,
     ):
 
         assert isinstance(mask_roi_pool, (MultiScaleRoIAlign, type(None)))
@@ -1694,6 +1719,7 @@ class MultimodalMaskRCNN(MultimodalFasterRCNN):
             box_positive_fraction,
             bbox_reg_weights,
             clinical_backbone=clinical_backbone,
+            fixations_backbone=fixations_backbone,
         )
 
         if setup.use_mask:
