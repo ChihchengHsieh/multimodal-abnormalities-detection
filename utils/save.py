@@ -220,7 +220,7 @@ def end_train(
     )
 
     # print model
-    if train_info.model_setup.use_early_stop_model:
+    if train_info.model_setup.save_early_stop_model:
         print_f.print_title(
             f"Best AP validation model has been saved to: [{train_info.best_ap_val_model_path}]"
         )

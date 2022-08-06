@@ -6,9 +6,7 @@ from typing import Tuple, List, Dict, Optional
 import torch.nn.functional as F
 
 from torchvision.ops import boxes as box_ops
-from torchvision.models.detection.faster_rcnn import (
-    AnchorGenerator,
-)
+from torchvision.models.detection.faster_rcnn import AnchorGenerator
 
 from torchvision.models.detection.roi_heads import (
     fastrcnn_loss,
@@ -41,12 +39,7 @@ class XAMITwoMLPHead(nn.Module):
 
         self.setup = setup
         self.fc6 = nn.Sequential(
-            nn.Linear(
-                in_channels + setup.clinical_input_channels
-                if setup.add_clinical_to_roi_heads
-                else in_channels,
-                representation_size,
-            ),
+            nn.Linear(in_channels, representation_size,),
             nn.Dropout2d(p=dropout_rate, inplace=False),
         )
         self.fc7 = nn.Sequential(
@@ -54,17 +47,9 @@ class XAMITwoMLPHead(nn.Module):
             nn.Dropout2d(p=dropout_rate, inplace=False),
         )
 
-    def forward(self, x, clinical_input=None):
+    def forward(self, x):
         self.x = x
         x = x.flatten(start_dim=1)
-
-        if self.setup.add_clinical_to_roi_heads:
-            assert (
-                not clinical_input is None
-            ), "You design the model to attach the clinical data in the box_pred; however, no clincal input is being provided."
-            self.clinical_input = clinical_input
-            x = torch.concat([x, clinical_input], axis=1)
-
         x = F.relu(self.fc6(x))
         x = F.relu(self.fc7(x))
 
@@ -433,7 +418,7 @@ class XAMIRoIHeads(nn.Module):
         self.score_thresh = score_thresh
         self.nms_thresh = nms_thresh
         self.detections_per_img = detections_per_img
-        self.across_class_nms_thresh= across_class_nms_thresh
+        self.across_class_nms_thresh = across_class_nms_thresh
 
         self.mask_roi_pool = mask_roi_pool
         self.mask_head = mask_head
@@ -631,7 +616,9 @@ class XAMIRoIHeads(nn.Module):
             boxes, scores, labels = boxes[keep], scores[keep], labels[keep]
 
             if self.across_class_nms_thresh:
-                keep = box_ops.batched_nms(boxes, scores, torch.ones_like(labels), self.across_class_nms_thresh)
+                keep = box_ops.batched_nms(
+                    boxes, scores, torch.ones_like(labels), self.across_class_nms_thresh
+                )
                 keep = keep[: self.detections_per_img]
                 boxes, scores, labels = boxes[keep], scores[keep], labels[keep]
 
@@ -647,7 +634,6 @@ class XAMIRoIHeads(nn.Module):
         proposals,  # type: List[Tensor]
         image_shapes,  # type: List[Tuple[int, int]]
         targets=None,  # type: Optional[List[Dict[str, Tensor]]]
-        clinical_input=None,
     ):
         # type: (...) -> Tuple[List[Dict[str, Tensor]], Dict[str, Tensor]]
         """
@@ -687,21 +673,7 @@ class XAMIRoIHeads(nn.Module):
         box_features = self.box_roi_pool(features, proposals, image_shapes)
         self.proposals = proposals
 
-        if self.setup.add_clinical_to_roi_heads:
-            # you will expect to receive the clinical_input
-            assert (
-                not clinical_input is None
-            ), "You design the model to attach the clinical data in the roi_head; however, no clincal input is being provided."
-            proposals_clinical_input = torch.concat(
-                [
-                    clinical_input[i].repeat(p.shape[0], 1)
-                    for i, p in enumerate(proposals)
-                ],
-                axis=0,
-            )
-            box_features = self.box_head(box_features, proposals_clinical_input)
-        else:
-            box_features = self.box_head(box_features)
+        box_features = self.box_head(box_features)
 
         class_logits, box_regression = self.box_predictor(box_features)
         self.pred_out_logits, self.pred_out_reg = class_logits, box_regression
