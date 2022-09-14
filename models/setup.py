@@ -49,8 +49,8 @@ class ModelSetup:
     box_head_dropout_rate: float = 0
     fuse_depth: int = 4
 
-    spatialise_clinical: bool = True
-    add_clinical_to_roi_heads: bool = True
+    spatialise_clinical: bool = True # 3d
+    add_clinical_to_roi_heads: bool = False # 1d
 
     fusion_strategy: str = "concat"  # ["add", "concat"]
     fusion_residule: bool = False
@@ -60,3 +60,8 @@ class ModelSetup:
     spatialise_method: str = "convs"  # ["convs", "repeat"]
     normalise_clinical_num: bool = False
     measure_test: bool = False
+
+    pre_spatialised_layer: int = None 
+
+    # what that layer should be called?
+    

@@ -13,7 +13,6 @@ from pathlib import Path
 from sklearn.preprocessing import LabelEncoder
 from PIL import Image
 from copy import deepcopy
-from sklearn.preprocessing import LabelEncoder
 from .constants import (
     DEFAULT_REFLACX_BOX_COORD_COLS,
     DEFAULT_REFLACX_BOX_FIX_COLS,

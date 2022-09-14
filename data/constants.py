@@ -85,5 +85,6 @@ DEFAULT_REFLACX_PATH_COLS : List[str]= [
     "image_path",
     "anomaly_location_ellipses_path",
     "bbox_paths",
+    "fixations_path"
 ]
 

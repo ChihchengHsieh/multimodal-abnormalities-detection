@@ -9,7 +9,7 @@ from torch import nn, Tensor
 from typing import Tuple, List, Dict
 
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor,  MaskRCNNHeads
+from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor, MaskRCNNHeads
 from torchvision.ops import boxes as box_ops
 from torchvision.models.detection.faster_rcnn import (
     MultiScaleRoIAlign,
@@ -22,13 +22,18 @@ from torchvision.models.detection.faster_rcnn import (
 from torchvision.models.detection.image_list import ImageList
 from torchvision.models.detection.transform import resize_boxes, resize_keypoints
 from torchvision.models.detection.roi_heads import paste_masks_in_image
-from models.detectors.rcnn_components import XAMIRegionProposalNetwork, XAMIRoIHeads, XAMITwoMLPHead
+from models.detectors.rcnn_components import (
+    XAMIRegionProposalNetwork,
+    XAMIRoIHeads,
+    XAMITwoMLPHead,
+)
 from models.setup import ModelSetup
 
 """
 This model is modified from the source code of torchvision.
 (source: https://github.com/pytorch/vision/blob/main/torchvision/models/detection/generalized_rcnn.py)
 """
+
 
 class MultimodalGeneralizedRCNN(nn.Module):
     """
@@ -58,6 +63,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
 
         self.transform = transform
         self.backbone = backbone
+        # self.fixation_backbone = fixation_backbone
         self.fusing_channels = self.backbone.out_channels
         self.rpn = rpn
         self.roi_heads = roi_heads
@@ -159,6 +165,33 @@ class MultimodalGeneralizedRCNN(nn.Module):
                     f"Unsupported spatialisation method: {self.setup.spatialise_method}"
                 )
 
+            self.pre_spa = None
+
+            if (
+                not self.setup.pre_spatialised_layer is None
+                and self.setup.pre_spatialised_layer > 0
+            ):
+                pre_spa_layers = itertools.chain.from_iterable(
+                    [
+                        [
+                            nn.Linear(
+                                self.setup.clinical_input_channels,
+                                self.setup.clinical_input_channels,
+                            ),
+                            nn.BatchNorm1d(self.setup.clinical_input_channels),
+                            nn.LeakyReLU(),
+                        ]
+                        for _ in range(self.setup.pre_spatialised_layer)
+                    ]
+                )
+                self.pre_spa = nn.Sequential(*pre_spa_layers)
+                self.pre_spa.append(
+                    nn.Linear(
+                        self.setup.clinical_input_channels,
+                        self.setup.clinical_input_channels,
+                    )
+                )
+
             if self.setup.using_fpn:
                 self._build_fpn_fuse_convs()
             else:
@@ -255,6 +288,9 @@ class MultimodalGeneralizedRCNN(nn.Module):
                 [torch.stack(clinical_num, dim=0), clincal_embout], axis=1
             )
 
+        if self.pre_spa:
+            clinical_input = self.pre_spa(clinical_input)
+
         clinical_features = None
         if self.setup.spatialise_clinical:
             clinical_features = OrderedDict({})
@@ -268,7 +304,6 @@ class MultimodalGeneralizedRCNN(nn.Module):
                 if isinstance(clinical_features, torch.Tensor):
                     clinical_features = OrderedDict([("0", clinical_features)])
             elif self.setup.spatialise_method == "repeat":
-
                 for k in self.feature_keys:
                     clinical_features[k] = self.before_repeat[k](clinical_input)[
                         :, :, None, None
@@ -437,6 +472,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
             return losses, detections
         else:
             return self.eager_outputs(losses, detections)
+
 
 class MultimodalFasterRCNN(MultimodalGeneralizedRCNN):
     """
@@ -683,7 +719,7 @@ class MultimodalFasterRCNN(MultimodalGeneralizedRCNN):
             box_score_thresh,
             box_nms_thresh,
             box_detections_per_img,
-            across_class_nms_thresh= across_class_nms_thresh,
+            across_class_nms_thresh=across_class_nms_thresh,
         )
 
         if image_mean is None:
