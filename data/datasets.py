@@ -13,6 +13,8 @@ from pathlib import Path
 from sklearn.preprocessing import LabelEncoder
 from PIL import Image
 from copy import deepcopy
+
+from models.setup import ModelSetup
 from .constants import (
     DEFAULT_REFLACX_BOX_COORD_COLS,
     DEFAULT_REFLACX_BOX_FIX_COLS,
@@ -29,7 +31,7 @@ from .helpers import map_target_to_device
 
 def collate_fn(batch: Tuple) -> Tuple:
     return tuple(zip(*batch))
-
+    
 
 class ReflacxDataset(data.Dataset):
     """
@@ -205,6 +207,10 @@ class ReflacxDataset(data.Dataset):
 
         return boxes_df
 
+    def set_clinical_features_used(self, clinical_numerical_cols, clinical_categorical_cols):
+        self.clinical_numerical_cols = clinical_numerical_cols
+        self.clinical_categorical_cols = clinical_categorical_cols
+
     def __getitem__(
         self, idx: int
     ) -> Union[
@@ -265,26 +271,29 @@ class ReflacxDataset(data.Dataset):
         img_t, target = self.transforms(img, target)
 
         if self.with_clinical:
-            if self.normalise_clinical_num:
-                clinical_num = (
-                    torch.tensor(
-                        self.clinical_num_norm.transform(
-                            np.array([data[self.clinical_numerical_cols]])
-                        ),
-                        dtype=float,
+            clinical_num = None
+            if not self.clinical_numerical_cols is None and len(self.clinical_numerical_cols) > 0:
+                if self.normalise_clinical_num:
+                    clinical_num = (
+                        torch.tensor(
+                            self.clinical_num_norm.transform(
+                                np.array([data[self.clinical_numerical_cols]])
+                            ),
+                            dtype=float,
+                        )
+                        .float()
+                        .squeeze()
                     )
-                    .float()
-                    .squeeze()
+                else:
+                    clinical_num = torch.tensor(
+                        np.array(data[self.clinical_numerical_cols], dtype=float)
+                    ).float()
+
+            clinical_cat = None
+            if not self.clinical_categorical_cols is None and len(self.clinical_categorical_cols) > 0:
+                clinical_cat = torch.tensor(    
+                    np.array(data[self.clinical_categorical_cols], dtype=int)
                 )
-            else:
-                clinical_num = torch.tensor(
-                    np.array(data[self.clinical_numerical_cols], dtype=float)
-                ).float()
-
-            clinical_cat = torch.tensor(
-                np.array(data[self.clinical_categorical_cols], dtype=int)
-            )
-
             return img_t, clinical_num, clinical_cat, target
 
         return img_t, target
@@ -305,8 +314,11 @@ class ReflacxDataset(data.Dataset):
             imgs, clinical_num, clinical_cat, targets = data
 
             imgs = list(img.to(device) for img in imgs)
-            clinical_num = [t.to(device) for t in clinical_num]
-            clinical_cat = [t.to(device) for t in clinical_cat]
+
+            if not self.clinical_numerical_cols is None and len(self.clinical_numerical_cols) > 0:
+                clinical_num = [t.to(device) for t in clinical_num] 
+            if not self.clinical_categorical_cols is None and len(self.clinical_categorical_cols) > 0:
+                clinical_cat = [t.to(device) for t in clinical_cat]
             targets = [map_target_to_device(t, device) for t in targets]
 
             return (imgs, clinical_num, clinical_cat, targets)
@@ -379,6 +391,8 @@ class OurRadiologsitsDataset(data.Dataset):
             imgs, clinical_num, clinical_cat, targets = data
 
             imgs = list(img.to(device) for img in imgs)
+            
+
             clinical_num = [t.to(device) for t in clinical_num]
             clinical_cat = [t.to(device) for t in clinical_cat]
             targets = [map_target_to_device(t, device) for t in targets]

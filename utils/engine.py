@@ -52,6 +52,7 @@ def loss_multiplier( loss_dict, epoch = None):
 
 
 def xami_train_one_epoch(
+    setup: ModelSetup,
     model: nn.Module,
     optimizer: Optimizer,
     data_loader: DataLoader,
@@ -151,6 +152,7 @@ def xami_train_one_epoch(
 
 @torch.inference_mode()
 def xami_evaluate(
+    setup: ModelSetup, 
     model: nn.Module,
     data_loader: DataLoader,
     device: str,

@@ -42,7 +42,7 @@ class XAMITwoMLPHead(nn.Module):
         self.setup = setup
         self.fc6 = nn.Sequential(
             nn.Linear(
-                in_channels + setup.clinical_input_channels
+                in_channels + setup.get_input_dim_for_spa()
                 if setup.add_clinical_to_roi_heads
                 else in_channels,
                 representation_size,

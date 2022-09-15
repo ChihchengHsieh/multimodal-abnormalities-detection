@@ -91,9 +91,13 @@ class MultimodalGeneralizedRCNN(nn.Module):
             self.build_clinical_model()
 
     def build_clinical_model(self,):
-        self.gender_emb_layer = nn.Embedding(
-            2, self.setup.clinical_input_channels - self.setup.clinical_num_len
-        )
+        clincial_cat_is_used = self.setup.has_categorical_clinical_features()
+        if clincial_cat_is_used:
+            self.gender_emb_layer = nn.Embedding(
+                2,
+                self.setup.clinical_input_channels
+                - len(self.setup.including_clinical_num),
+            )
 
         if self.setup.spatialise_clinical:
             if self.setup.spatialise_method == "convs":
@@ -110,7 +114,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
                             [
                                 nn.ConvTranspose2d(
                                     (
-                                        self.setup.clinical_input_channels
+                                        self.setup.get_input_dim_for_spa()
                                         if i == 0
                                         else self.setup.clinical_expand_conv_channels
                                     ),
@@ -175,13 +179,17 @@ class MultimodalGeneralizedRCNN(nn.Module):
                     [
                         [
                             nn.Linear(
-                                self.setup.clinical_input_channels,
+                                (
+                                    self.setup.get_input_dim_for_pre_spa()
+                                    if i == 0
+                                    else self.setup.clinical_input_channels
+                                ),
                                 self.setup.clinical_input_channels,
                             ),
                             nn.BatchNorm1d(self.setup.clinical_input_channels),
                             nn.LeakyReLU(),
                         ]
-                        for _ in range(self.setup.pre_spatialised_layer)
+                        for i in range(self.setup.pre_spatialised_layer)
                     ]
                 )
                 self.pre_spa = nn.Sequential(*pre_spa_layers)
@@ -283,10 +291,22 @@ class MultimodalGeneralizedRCNN(nn.Module):
 
         clinical_input = None
         if self.setup.use_clinical:
-            clincal_embout = self.gender_emb_layer(torch.concat(clinical_cat, axis=0))
-            clinical_input = torch.concat(
-                [torch.stack(clinical_num, dim=0), clincal_embout], axis=1
-            )
+            if (
+                self.setup.has_categorical_clinical_features()
+                and self.setup.has_numerical_clinical_features()
+            ):
+                clincal_embout = self.gender_emb_layer(
+                    torch.concat(clinical_cat, axis=0)
+                )
+                clinical_input = torch.concat(
+                    [torch.stack(clinical_num, dim=0), clincal_embout], axis=1
+                )
+            elif self.setup.has_categorical_clinical_features():
+                clinical_input = self.gender_emb_layer(
+                    torch.concat(clinical_cat, axis=0)
+                )
+            elif self.setup.has_numerical_clinical_features():
+                clinical_input = torch.stack(clinical_num, dim=0)
 
         if self.pre_spa:
             clinical_input = self.pre_spa(clinical_input)
@@ -445,8 +465,10 @@ class MultimodalGeneralizedRCNN(nn.Module):
         else:
             features = img_features
 
+
         proposals, proposal_losses = self.rpn(images, features, targets)
 
+        # failed in this part.
         detections, detector_losses = self.roi_heads(
             features,
             proposals,
@@ -454,6 +476,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
             targets,
             clinical_input=clinical_input,
         )
+
 
         detections = postprocess(
             self.transform, detections, images.image_sizes, original_image_sizes

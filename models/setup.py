@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from typing import List
 
+from data.constants import DEFAULT_MIMIC_CLINICAL_CAT_COLS, DEFAULT_MIMIC_CLINICAL_NUM_COLS
+
 
 @dataclass
 class ModelSetup:
@@ -41,7 +43,10 @@ class ModelSetup:
 
     clinical_input_channels: int = 32
     clinical_expand_conv_channels: int = 32
-    clinical_num_len: int = 9
+
+    including_clinical_num: List[str] =  field(default_factory = lambda: DEFAULT_MIMIC_CLINICAL_NUM_COLS)
+    including_clinical_cat: List[str] = field(default_factory = lambda:DEFAULT_MIMIC_CLINICAL_CAT_COLS)
+
     clinical_conv_channels: int = 32
 
     fuse_conv_channels: int = 32
@@ -64,4 +69,31 @@ class ModelSetup:
     pre_spatialised_layer: int = None 
 
     # what that layer should be called?
+
+    def has_categorical_clinical_features (self,):
+        return not self.including_clinical_cat is None and len(self.including_clinical_cat) > 0
     
+    def has_numerical_clinical_features(self,):
+        return not self.including_clinical_num is None and len(self.including_clinical_num) > 0
+
+    def has_pre_spa(self):
+        return not self.pre_spatialised_layer is None and self.pre_spatialised_layer > 0
+
+
+    def get_input_dim_for_spa(self,):
+        if not self.use_clinical:
+            return 0
+
+        if self.has_pre_spa() or self.has_categorical_clinical_features():
+            return self.clinical_input_channels
+
+        return len(self.including_clinical_num)
+
+    def get_input_dim_for_pre_spa(self,):
+        if not self.use_clinical:
+            return 0
+
+        if self.has_categorical_clinical_features():
+            return self.clinical_input_channels
+
+        return len(self.including_clinical_num)

@@ -18,6 +18,21 @@ DEFAULT_MIMIC_CLINICAL_NUM_COLS: List[str] = [
     "acuity",
 ]
 
+
+
+# DEFAULT_MIMIC_CLINICAL_NUM_COLS: List[str] = [
+#     "age",
+#     "temperature",
+#     "heartrate",
+#     "resprate",
+#     "o2sat",
+#     "sbp",
+#     "dbp",
+#     "pain",
+#     "acuity",
+# ]
+
+
 DEFAULT_MIMIC_CLINICAL_CAT_COLS: List[str] = ["gender"]
 
 """
