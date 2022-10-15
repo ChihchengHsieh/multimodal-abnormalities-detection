@@ -73,6 +73,9 @@ class TrainingInfo:
         self.clinical_cond = "With" if model_setup.use_clinical else "Without"
         self.end_t = None
         self.epoch = 0
+
+        self.removed_model_paths = []
+
         super(TrainingInfo).__init__()
 
     def __str__(self):
@@ -89,4 +92,9 @@ class TrainingInfo:
             + "\n\n"
             + section_divider
         )
+
+    def still_has_path(self, path: str) -> bool:
+        return path == self.best_ar_val_model_path or path == self.best_ap_val_model_path
+
+
 

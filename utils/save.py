@@ -132,6 +132,7 @@ def remove_previous_model(previous_model: str):
 
 
 def check_best(
+    setup,
     train_info: TrainingInfo,
     val_ap_ar,
     eval_params_dict: Dict,
@@ -145,13 +146,14 @@ def check_best(
     dynamic_weight: nn.Module =None, 
     test_ap_ar = None,
 ) -> Tuple[float, float, TrainingInfo]:
-
+    
     val_ar, val_ap = val_ap_ar['ar'],  val_ap_ar['ap']
 
     ## Targeting the model with higher Average Recall and Average Precision.
     if val_ar > train_info.best_val_ar or val_ap > train_info.best_val_ap:
         if test_ap_ar is None:
             train_info.test_evaluator, test_logger = xami_evaluate(
+                setup=setup,
                 model=model,
                 data_loader=test_dataloader,
                 device=device,
@@ -177,7 +179,10 @@ def check_best(
             )
             train_info.best_ar_val_model_path = train_info.final_model_path
             train_info.best_val_ar = val_ar
-            remove_previous_model(previous_ar_model)
+
+            if not train_info.still_has_path(previous_ar_model):
+                remove_previous_model(previous_ar_model)
+                train_info.removed_model_paths.append(previous_ar_model)
 
         if val_ap > train_info.best_val_ap:
             previous_ap_model = deepcopy(train_info.best_ap_val_model_path)
@@ -193,12 +198,43 @@ def check_best(
             )
             train_info.best_ap_val_model_path = train_info.final_model_path
             train_info.best_val_ap = val_ap
-            remove_previous_model(previous_ap_model)
+            
+            if not train_info.still_has_path(previous_ap_model):
+                remove_previous_model(previous_ap_model)
+                train_info.removed_model_paths.append(previous_ap_model)
+
+    # we should check existence of the model: 
+    model_save_checking(train_info)
 
     return val_ar, val_ap, train_info
 
 
+def model_save_checking(train_info: TrainingInfo):
+    # path checking 
+    if not train_info.best_ap_val_model_path is None:
+        exist = model_path_checking_existence(train_info.best_ap_val_model_path)
+        if not exist:
+            raise FileNotFoundError(f"The best AP model file is not found: [{train_info.best_ap_val_model_path}]")
+    
+    if not train_info.best_ar_val_model_path is None:
+        exist = model_path_checking_existence(train_info.best_ar_val_model_path)
+        if not exist:
+            raise FileNotFoundError(f"The best AR model file is not found: [{train_info.best_ar_val_model_path}]")
+    
+    if not train_info.final_model_path is None:
+        exist = model_path_checking_existence(train_info.best_ar_val_model_path)
+        if not exist:
+            raise FileNotFoundError(f"The final model file is not found: [{train_info.final_model_path}]")
+
+def model_path_checking_existence(model_path):
+    # check the model exist:
+    return os.path.exists(os.path.join(os.path.join("trained_models", model_path))) and os.path.exists(os.path.join("training_records", f"{model_path}.pkl"))
+
+
+
+
 def end_train(
+    setup,
     train_info: TrainingInfo,
     model: nn.Module,
     optim: Optimizer,
@@ -229,6 +265,7 @@ def end_train(
         )
 
     train_info.test_evaluator, test_logger = xami_evaluate(
+        setup= setup,
         model=model,
         data_loader=test_dataloader,
         device=device,

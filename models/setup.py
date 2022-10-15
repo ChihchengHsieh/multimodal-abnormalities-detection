@@ -71,13 +71,19 @@ class ModelSetup:
     # what that layer should be called?
 
     def has_categorical_clinical_features (self,):
+        if not hasattr(self, "including_clinical_cat"):
+            return True
+
         return not self.including_clinical_cat is None and len(self.including_clinical_cat) > 0
     
     def has_numerical_clinical_features(self,):
+        if not hasattr(self, "including_clinical_num"):
+            return True
+
         return not self.including_clinical_num is None and len(self.including_clinical_num) > 0
 
     def has_pre_spa(self):
-        return not self.pre_spatialised_layer is None and self.pre_spatialised_layer > 0
+        return hasattr(self, "pre_spatialised_layer") and not self.pre_spatialised_layer is None and self.pre_spatialised_layer > 0
 
 
     def get_input_dim_for_spa(self,):
@@ -87,7 +93,7 @@ class ModelSetup:
         if self.has_pre_spa() or self.has_categorical_clinical_features():
             return self.clinical_input_channels
 
-        return len(self.including_clinical_num)
+        return self.get_clinical_num_len()
 
     def get_input_dim_for_pre_spa(self,):
         if not self.use_clinical:
@@ -96,4 +102,17 @@ class ModelSetup:
         if self.has_categorical_clinical_features():
             return self.clinical_input_channels
 
-        return len(self.including_clinical_num)
+        return self.get_clinical_num_len()
+
+    def get_clinical_num_len(self):
+        return len(self.including_clinical_num) if hasattr(self, "including_clinical_num") else 9
+
+    def get_clinical_cat_len(self):
+        return len(self.including_clinical_cat) if hasattr(self, "including_clinical_cat") else 1
+
+    def get_emb_dim(self,):
+        return self.clinical_input_channels - self.get_clinical_num_len()
+
+    
+
+

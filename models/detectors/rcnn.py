@@ -95,8 +95,7 @@ class MultimodalGeneralizedRCNN(nn.Module):
         if clincial_cat_is_used:
             self.gender_emb_layer = nn.Embedding(
                 2,
-                self.setup.clinical_input_channels
-                - len(self.setup.including_clinical_num),
+                self.setup.get_emb_dim(),
             )
 
         if self.setup.spatialise_clinical:
@@ -307,6 +306,8 @@ class MultimodalGeneralizedRCNN(nn.Module):
                 )
             elif self.setup.has_numerical_clinical_features():
                 clinical_input = torch.stack(clinical_num, dim=0)
+            else:
+                raise ValueError("No clinical feature provided")
 
         if self.pre_spa:
             clinical_input = self.pre_spa(clinical_input)
