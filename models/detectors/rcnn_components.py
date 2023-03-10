@@ -339,6 +339,11 @@ class XAMIRegionProposalNetwork(torch.nn.Module):
                 testing, it is an empty dict.
         """
         # RPN uses all feature maps that are available
+
+        self.features = features
+        self.targets = targets
+
+        raise StopIteration()
         features = list(features.values())
         objectness, pred_bbox_deltas = self.head(features)
         anchors = self.anchor_generator(images, features)
